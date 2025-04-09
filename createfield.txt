@@ -1,0 +1,73 @@
+ <div class="card-body">         
+<div class="tab">
+                            <div class="form-row">
+                                <div class="form-group col-md-12">
+                                    <label>Pilih Hari</label>
+                                    {!! Form::select('day', $day, null, ['title'=>'Nothing Selected', 'class' =>
+                                    'form-control
+                                    selectpicker',
+                                    'data-live-search'=>'true', 'required'=>'required', 'id'=>'s_day', 'multiple' =>
+                                    'multiple'])
+                                    !!}
+                                    @error('day')
+                                    <div class="form-text text-danger">{{$message}}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div id="row-selectgroup">
+                            </div>
+
+                        </div>
+                        <div class="tab">
+                            <div class="form-row">
+                                <div class="form-group col-md-5" style="margin-right:50px;">
+                                    <label for="field_name">Nama Lapangan</label> <br>
+                                    <input name="field_name" oninput="this.className = ''" type="text"
+                                        class="form-control-sm validate" id="field_name"
+                                        placeholder="Inputkan nama lapagan" style="width:100%;">
+                                    @error('field_name')
+                                    <div class="invalid-feedback">
+                                        {{$message}}
+                                    </div>
+                                    @enderror
+                                </div>
+
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-5" style="margin-right:50px;">
+                                    <label for="field_type">Tipe Lapangan</label><br>
+                                    <select name="field_type" id="s_field_type_create" class="form-control form-control-sm
+                                selectpicker validate" data-live-search="true" onchange="this.className = ''"
+                                        style="max-height: 10px !important;">
+                                        @foreach($field_type as $type)
+                                        <option value="{{$type->id}}">{{$type->name}}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('field_type')
+                                    <div class="invalid-feedback">
+                                        {{$message}}
+                                    </div>
+                                    @enderror
+                                </div>
+                                <div class="form-group col-md-5">
+                                    <label>Gambar Lapangan</label><br>
+                                    <input type="file" id="field_image" name="field_image" accept="image/*"
+                                        oninput="this.className = ''" class="form-control-sm validate">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="overflow:auto;">
+                        <div style="float:right;margin-right:10px;">
+                            <button class="btn btn-secondary" type="button" id="prevBtn"
+                                onclick="nextPrev(-1)">Previous</button>
+                            <button class="btn btn-primary" type="button" id="nextBtn"
+                                onclick="nextPrev(1)">Next</button>
+                        </div>
+                    </div>
+                    <!-- Circles which indicates the steps of the form: -->
+                    <div style="text-align:center;margin-top:40px;">
+                        <span class="step"></span>
+                        <span class="step"></span>
+                    </div>
