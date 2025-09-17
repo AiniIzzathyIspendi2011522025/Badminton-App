@@ -75,13 +75,22 @@
                                     </tr>
                                     <tr class="summary-shipping-row">
                                         <td>subtotal :</td>
-                                        <td>{{ Helper::rupiah($rents->diskon + $rents->diskon_membership + $rents->total_price) }}
-                                        </td>
+                                        @if ($rents->RentPayment->note == 'B-Poin')
+                                        <td>{{ Helper::rupiah($rents->diskon + $rents->diskon_membership + $rents->total_price + $price) }}</td>
+                                        @else
+                                        <td>{{ Helper::rupiah($rents->diskon + $rents->diskon_membership + $rents->total_price) }}</td>
+                                        @endif
                                     </tr>
                                     <tr class="summary-shipping-row">
                                         <td>Diskon Membership ({{ $rents->field->Venue->membership_discount }}%):</td>
-                                        <td>{{ Helper::rupiah($rents->diskon_membership) }}</td>
+                                        <td>-{{ Helper::rupiah($rents->diskon_membership) }}</td>
                                     </tr>
+                                    @if ($rents->RentPayment->note == 'B-Poin')
+                                        <tr class="summary-shipping-row">
+                                            <td>Diskon B-Poin :</td>
+                                            <td>-{{ Helper::rupiah($price) }}</td>
+                                        </tr>
+                                    @endif
                                     @if ($rents->kode_promo)
                                         <tr class="summary-shipping-row" style="color:red;">
                                             <td>Diskon ({{ $rents->kode_promo }}) :</td>
@@ -120,10 +129,18 @@
                                             <td><b>{{ Helper::rupiah($rents->dp) }}</b></td>
                                         </tr>
                                     @endif
+                                    @if ($rents->RentPayment->payment == null)
+                                             <tr class="summary-shipping-row">
+                                        <td>Metode Pembayaran :</td>
+                                        <td><b>B-Poin</b></td>
+                                    </tr>
+                                    @else
                                     <tr class="summary-shipping-row">
                                         <td>Metode Pembayaran :</td>
                                         <td><b>{{ $rents->RentPayment->PaymentMethodDetail->PaymentMethod->name }}</b></td>
                                     </tr>
+                                    @endif
+                                    @if ($rents->RentPayment->payment !== null)
                                     <tr class="summary-shipping-row">
                                         <td colspan="2">Bukti Pembayaran :</td>
                                         <td></td>
@@ -136,17 +153,18 @@
                                             </figure>
                                         </td>
                                         <td></td>
+                                    @endif
 
                                         @php
                                             use Illuminate\Support\Facades\Request;
-                                        @endphp
+                                            @endphp
 
                                         <div class="visible-print text-center"
-                                            style="margin-top: 25px; margin-bottom: 50px;" style="color: black">
-                                            {!! QrCode::size(100)->generate('http://localhost:8000/owner/booking/' . $rents->id . '/show') !!}
+                                        style="margin-top: 25px; margin-bottom: 50px;" style="color: black">
+                                        {!! QrCode::size(100)->generate('http://localhost:8000/owner/booking/' . $rents->id . '/show') !!}
 
                                         </div>
-                                    </tr><!-- End .summary-total -->
+                                        </tr><!-- End .summary-total -->
                                 </tbody>
                             </table><!-- End .table table-summary -->
                         </div><!-- End .summary -->

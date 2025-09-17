@@ -28,10 +28,10 @@ class ProfilController extends Controller
             if (Auth::user()->thisCustomer()) {
                 $customers = User::where('id', Auth::user()->id)->get();
                 $memberships = Membership::where('user_id', $customers[0]->id)->get();
-                $point = PointBalance::where('user_id', Auth::user()->id)->first();
-                $point_transactions = PointTransaction::where('user_id', Auth::user()->id)->get();
+                $points = PointBalance::with('venue')->where('user_id', $customers[0]->id)->get();
+                $point_transactions = PointTransaction::where('user_id', Auth::user()->id)->orderBy('created_at', 'desc')->get();
                 Log::info("User " . Auth::user()->first_name . " " . Auth::user()->last_name . " Berhasil mengakses halaman index profil");
-                return view('backend.customer.manage_profil.index', compact('customers', 'memberships', 'point', 'point_transactions'));
+                return view('backend.customer.manage_profil.index', compact('customers', 'memberships', 'points', 'point_transactions'));
             } elseif (Auth::user()->thisOwner()) {
                 $owners = User::where('id', Auth::user()->id)->get();
 

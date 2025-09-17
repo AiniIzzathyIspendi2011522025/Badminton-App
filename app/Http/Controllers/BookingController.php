@@ -186,7 +186,8 @@ class BookingController extends Controller
         try {
             if (Auth::user()->thisCustomer()) {
                 $rents = Rent::find($id);
-                return view('backend.customer.manage_booking.show', compact('rents'));
+                $price = $rents->rentDetail->first()->OpeningHourDetail->price;
+                return view('backend.customer.manage_booking.show', compact('rents', 'price'));
             } elseif (Auth::user()->thisOwner()) {
                 try {
                     $rents = Rent::find($id);

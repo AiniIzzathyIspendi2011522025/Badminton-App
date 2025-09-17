@@ -25,7 +25,10 @@ class PaymentController extends Controller
         $owner_id = $rent->field->venue->user_id;
         $promos = Promo::where('user_id', $owner_id)->get();
         $user = Auth::user();
-        // dd($user);
+        $venueId = $rent->field->venue_id; // venue dari transaksi
+        $pointBalance = PointBalance::where('user_id', $user->id)
+            ->where('venue_id', $venueId)
+            ->first();
         $membership = Membership::where('user_id', $user->id)->where('venue_id', $rent->field->venue->id)->first();
         // $details = [
         //     'title' => 'Mail from websitepercobaan.com',
@@ -37,15 +40,17 @@ class PaymentController extends Controller
             'rent' => $rent,
             'promos' => $promos,
             'membership' => $membership,
-            'user' => $user
+            'user' => $user,
+            'pointBalance' => $pointBalance,
         ]);
     }
 
-    public function pay(Request $request, $id)
-    {
-        // dd($request);
+    public function pay(Request $request, $id){
         try {
-            $rent = Rent::find($id);
+            $rent = Rent::with('field')->findOrFail($id);
+
+            // dd($request->all());
+
             if (Carbon::now() <= Carbon::parse($rent->created_at)->addMinutes(10)) {
                 if ($request->status == 2) {
                     $rent->dp = $request->dp;
@@ -53,15 +58,36 @@ class PaymentController extends Controller
 
                 $dir = public_path() . '/images/payment';
                 $file = $request->file('payment');
-                if ($file) {
-                    $fileName = Time() . "." . $file->getClientOriginalName();
-                    $file->move($dir, $fileName);
-                    $rentPayment = new RentPayment;
+
+                if ($request->total_price > 0 && !$file) {
+                    return back()->withErrors(['payment_proof' => 'Bukti pembayaran wajib diunggah jika ada sisa tagihan.']);
+                }
+
+                // Tahap 2: Proses - Jika lolos validasi, buat record pembayaran
+                if ($request->point_spent > 0 || $request->total_price > 0) {
+                    $rentPayment = new RentPayment();
                     $rentPayment->rent_id = $rent->id;
                     $rentPayment->payment_method_detail_id = $request->payment_method;
-                    $rentPayment->payment = $fileName;
+
+                    $request->total_price > 0 ? $rentPayment->note = 'B-Poin' : null;
+
+                    if($request->total_price > 0 && $request->point_spent > 0){
+                        $rentPayment->note = 'B-Poin';
+                    } elseif ($request->point_spent > 0) {
+                        $rentPayment->note = 'B-Poin';
+                    }
+
+                    // Jika ada file yang diunggah, proses filenya.
+                    if ($file) {
+                        $fileName = time() . "." . $file->getClientOriginalName();
+                        $file->move($dir, $fileName);
+                        $rentPayment->payment = $fileName;
+                    }
+
                     $rentPayment->save();
                 }
+
+
                 $rent->payment_status = $request->status;
                 $rent->kode_promo = $request->kode_promo;
                 $rent->diskon = $request->diskon;
@@ -71,37 +97,46 @@ class PaymentController extends Controller
 
                 $user = Auth::user();
 
-                $point_transaction = new PointTransaction;
-                $point_transaction->user_id = $user->id;
-                $point_transaction->rent_id = $rent->id;
-                $point_transaction->point_earned = $request->point_earned;
-                $point_transaction->point_spent = $request->point_spent;
-                $point_transaction->save();
+                // Tentukan venue_id dari field pada rent
+                $venueId = $rent->field->venue_id;
 
-                // Mencari atau membuat instansiasi model PointBalance untuk pengguna yang sedang login
-                $point_balance = PointBalance::where('user_id', $user->id)->first();
-                if (!$point_balance) {
-                    // Jika tidak ada catatan PointBalance untuk pengguna, buat baru
-                    $point_balance = new PointBalance();
-                    $point_balance->user_id = $user->id;
-                    $point_balance->point_balance = 0; // Atur saldo awal jika diperlukan
+                // Simpan log transaksi poin
+                $pointTransaction = new PointTransaction();
+                $pointTransaction->user_id = $user->id;
+                $pointTransaction->rent_id = $rent->id;
+                $pointTransaction->venue_id = $venueId;
+                $pointTransaction->point_earned = $request->point_earned;
+                $pointTransaction->point_spent = $request->point_spent;
+                $pointTransaction->save();
+
+                // Update / buat saldo poin per user + venue
+                $pointBalance = PointBalance::where('user_id', $user->id)
+                    ->where('venue_id', $venueId)
+                    ->first();
+
+                if (!$pointBalance) {
+                    $pointBalance = new PointBalance();
+                    $pointBalance->user_id = $user->id;
+                    $pointBalance->venue_id = $venueId;
+                    $pointBalance->point_balance = 0;
                 }
-                $point_balance->point_balance += $request->point_earned;
-                $point_balance->point_balance -= $request->point_spent;
-                $point_balance->save();
 
-
+                $pointBalance->point_balance += $request->point_earned;
+                $pointBalance->point_balance -= $request->point_spent;
+                $pointBalance->save();
 
                 session()->forget('kode');
-                return redirect()->route('customer.booking.index')->with('success', __('toast.create.success.message'));
+                return redirect()->route('customer.booking.index')
+                    ->with('success', __('toast.create.success.message'));
             } else {
-                return redirect()->back('error', 'Batas waktu pembayaran telah berakhir');
+                return redirect()->back()->with('error', 'Batas waktu pembayaran telah berakhir');
             }
         } catch (\Exception $e) {
             dd($e);
-            return redirect()->back('error', __('toast.create.failed.message'));
+            return redirect()->back()->with('error', __('toast.create.failed.message'));
         }
     }
+
 
     public function booking(Request $request)
     {

@@ -90,7 +90,7 @@
                                                 ?>
                                                 @foreach ($venues->VenueImage as $VenueImage)
                                                     @if ($i < 4)
-                                                        @if ($i == 3)
+                                                        @if ($i == 4)
                                                             <div class="gallery-item gallery-more" id="more-image"
                                                                 onclick="more_image()"
                                                                 data-image="{{ asset('images/venue/' . $VenueImage->image) }}"
@@ -477,152 +477,152 @@
             });
         }
 
-        let mapCreate;
-        let mapShow;
-        let markers = [];
-        // When the window has finished loading google map
-        google.maps.event.addDomListener(window, 'load', init);
+        // let mapCreate;
+        // let mapShow;
+        // let markers = [];
+        // // When the window has finished loading google map
+        // google.maps.event.addDomListener(window, 'load', init);
 
-        function init() {
-            // More info see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
-            var mapOptions1 = {
-                zoom: 12,
-                center: new google.maps.LatLng(-0.9111111111111111, 100.34972222222221),
-                // Style for Google Maps
-                styles: [{
-                    "featureType": "water",
-                    "stylers": [{
-                        "saturation": 43
-                    }, {
-                        "lightness": -11
-                    }, {
-                        "hue": "#0088ff"
-                    }]
-                }, {
-                    "featureType": "road",
-                    "elementType": "geometry.fill",
-                    "stylers": [{
-                        "hue": "#ff0000"
-                    }, {
-                        "saturation": -100
-                    }, {
-                        "lightness": 99
-                    }]
-                }, {
-                    "featureType": "road",
-                    "elementType": "geometry.stroke",
-                    "stylers": [{
-                        "color": "#808080"
-                    }, {
-                        "lightness": 54
-                    }]
-                }, {
-                    "featureType": "landscape.man_made",
-                    "elementType": "geometry.fill",
-                    "stylers": [{
-                        "color": "#ece2d9"
-                    }]
-                }, {
-                    "featureType": "poi.park",
-                    "elementType": "geometry.fill",
-                    "stylers": [{
-                        "color": "#ccdca1"
-                    }]
-                }, {
-                    "featureType": "road",
-                    "elementType": "labels.text.fill",
-                    "stylers": [{
-                        "color": "#767676"
-                    }]
-                }, {
-                    "featureType": "road",
-                    "elementType": "labels.text.stroke",
-                    "stylers": [{
-                        "color": "#ffffff"
-                    }]
-                }, {
-                    "featureType": "poi",
-                    "stylers": [{
-                        "visibility": "off"
-                    }]
-                }, {
-                    "featureType": "landscape.natural",
-                    "elementType": "geometry.fill",
-                    "stylers": [{
-                        "visibility": "on"
-                    }, {
-                        "color": "#b8cb93"
-                    }]
-                }, {
-                    "featureType": "poi.park",
-                    "stylers": [{
-                        "visibility": "on"
-                    }]
-                }, {
-                    "featureType": "poi.sports_complex",
-                    "stylers": [{
-                        "visibility": "on"
-                    }]
-                }, {
-                    "featureType": "poi.medical",
-                    "stylers": [{
-                        "visibility": "on"
-                    }]
-                }, {
-                    "featureType": "poi.business",
-                    "stylers": [{
-                        "visibility": "simplified"
-                    }]
-                }]
-            };
+        // function init() {
+        //     // More info see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
+        //     var mapOptions1 = {
+        //         zoom: 12,
+        //         center: new google.maps.LatLng(-0.9111111111111111, 100.34972222222221),
+        //         // Style for Google Maps
+        //         styles: [{
+        //             "featureType": "water",
+        //             "stylers": [{
+        //                 "saturation": 43
+        //             }, {
+        //                 "lightness": -11
+        //             }, {
+        //                 "hue": "#0088ff"
+        //             }]
+        //         }, {
+        //             "featureType": "road",
+        //             "elementType": "geometry.fill",
+        //             "stylers": [{
+        //                 "hue": "#ff0000"
+        //             }, {
+        //                 "saturation": -100
+        //             }, {
+        //                 "lightness": 99
+        //             }]
+        //         }, {
+        //             "featureType": "road",
+        //             "elementType": "geometry.stroke",
+        //             "stylers": [{
+        //                 "color": "#808080"
+        //             }, {
+        //                 "lightness": 54
+        //             }]
+        //         }, {
+        //             "featureType": "landscape.man_made",
+        //             "elementType": "geometry.fill",
+        //             "stylers": [{
+        //                 "color": "#ece2d9"
+        //             }]
+        //         }, {
+        //             "featureType": "poi.park",
+        //             "elementType": "geometry.fill",
+        //             "stylers": [{
+        //                 "color": "#ccdca1"
+        //             }]
+        //         }, {
+        //             "featureType": "road",
+        //             "elementType": "labels.text.fill",
+        //             "stylers": [{
+        //                 "color": "#767676"
+        //             }]
+        //         }, {
+        //             "featureType": "road",
+        //             "elementType": "labels.text.stroke",
+        //             "stylers": [{
+        //                 "color": "#ffffff"
+        //             }]
+        //         }, {
+        //             "featureType": "poi",
+        //             "stylers": [{
+        //                 "visibility": "off"
+        //             }]
+        //         }, {
+        //             "featureType": "landscape.natural",
+        //             "elementType": "geometry.fill",
+        //             "stylers": [{
+        //                 "visibility": "on"
+        //             }, {
+        //                 "color": "#b8cb93"
+        //             }]
+        //         }, {
+        //             "featureType": "poi.park",
+        //             "stylers": [{
+        //                 "visibility": "on"
+        //             }]
+        //         }, {
+        //             "featureType": "poi.sports_complex",
+        //             "stylers": [{
+        //                 "visibility": "on"
+        //             }]
+        //         }, {
+        //             "featureType": "poi.medical",
+        //             "stylers": [{
+        //                 "visibility": "on"
+        //             }]
+        //         }, {
+        //             "featureType": "poi.business",
+        //             "stylers": [{
+        //                 "visibility": "simplified"
+        //             }]
+        //         }]
+        //     };
 
-            // Get all html elements for map
-            var mapElement3 = document.getElementById('map-show');
+        //     // Get all html elements for map
+        //     var mapElement3 = document.getElementById('map-show');
 
-            // Create the Google Map using elements
-            var map = new google.maps.Map(mapElement3, mapOptions1);
-
-
-            // Variabel untuk menyimpan batas kordinat
-            bounds = new google.maps.LatLngBounds();
+        //     // Create the Google Map using elements
+        //     var map = new google.maps.Map(mapElement3, mapOptions1);
 
 
+        //     // Variabel untuk menyimpan batas kordinat
+        //     bounds = new google.maps.LatLngBounds();
 
-            $.ajax({
-                url: "{{ url('api/venue/get-location') }}?id={{ $venues->id }}",
-                dataType: 'json',
-                cache: false,
-                dataSrc: '',
 
-                success: function(data) {
-                    var latitude = data.map(function(item) {
-                        return item.latitude;
-                    });
-                    var longitude = data.map(function(item) {
-                        return item.longitude;
-                    });
-                    var latlng = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
-                    console.log(latitude);
-                    console.log(longitude);
-                    for (i = 0; i < data.length; i++) {
-                        var pos = {
-                            lat: parseFloat(latitude[i]),
-                            lng: parseFloat(longitude[i])
-                        };
-                        var marker = new google.maps.Marker({
-                            position: pos,
-                            map: map,
-                            title: 'Lokasi Anda',
-                            icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                            draggable: true,
-                            animation: google.maps.Animation.DROP
-                        });
-                        marker.setMap(map);
-                        map.setCenter(latlng);
-                    }
-                }
 
-            });
-        }
+        //     $.ajax({
+        //         url: "{{ url('api/venue/get-location') }}?id={{ $venues->id }}",
+        //         dataType: 'json',
+        //         cache: false,
+        //         dataSrc: '',
+
+        //         success: function(data) {
+        //             var latitude = data.map(function(item) {
+        //                 return item.latitude;
+        //             });
+        //             var longitude = data.map(function(item) {
+        //                 return item.longitude;
+        //             });
+        //             var latlng = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
+        //             console.log(latitude);
+        //             console.log(longitude);
+        //             for (i = 0; i < data.length; i++) {
+        //                 var pos = {
+        //                     lat: parseFloat(latitude[i]),
+        //                     lng: parseFloat(longitude[i])
+        //                 };
+        //                 var marker = new google.maps.Marker({
+        //                     position: pos,
+        //                     map: map,
+        //                     title: 'Lokasi Anda',
+        //                     icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        //                     draggable: true,
+        //                     animation: google.maps.Animation.DROP
+        //                 });
+        //                 marker.setMap(map);
+        //                 map.setCenter(latlng);
+        //             }
+        //         }
+
+        //     });
+        // }
     </script>
 @endsection

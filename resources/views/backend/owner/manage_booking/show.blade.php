@@ -88,9 +88,20 @@
                                                 Online
                                             </label>
                                             <br>
+                                        @if ($rents->RentPayment)
+                                            @if ($rents->RentPayment->payment == null)
+                                            <label><i class='fas fa-coins' data-toggle="tooltip"
+                                                    data-title="Pembayaran menggunakan B-Poin" data-placement="bottom"></i>
+                                                Pembayaran menggunakan B-Poin
+                                            </label>
+                                            <br>
+                                            @else
                                             <label><i class='far fa-credit-card' data-toggle="tooltip"
                                                     data-title="Metode Pembayaran" data-placement="bottom"></i>
                                                 {{ $rents->RentPayment->PaymentMethodDetail->PaymentMethod->name }}</label>
+                                            @endif
+                                        @endif
+
                                             <br>
                                             <label><i class='fas fa-cart-arrow-down' data-toggle="tooltip"
                                                     data-title="Jenis Pembayaran" data-placement="bottom"></i>
@@ -140,11 +151,17 @@
                                 </div>
                                 <div class="col-sm-4">
                                     @if ($rents->RentPayment)
+                                        @if ($rents->RentPayment->payment == null)
+                                            <div class="form-group">
+                                                <label> Pembayaran menggunakan B-Poin</label><br>
+                                            </div>
+                                        @else
                                         <div class="form-group">
                                             <label>Bukti Pembayaran </label><br>
                                             <img src="{{ asset('images/payment/' . $rents->RentPayment->payment) }}"
                                                 alt="" style="width:300px; height:200px;">
                                         </div>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -178,15 +195,24 @@
                                                         <tr>
                                                             <th colspan="2">Diskon Membership
                                                                 ({{ $rents->field->Venue->membership_discount }}%)</th>
-                                                            <th>{{ Helper::rupiah($rents->diskon_membership) }}</th>
+                                                            <td>-{{ Helper::rupiah($rents->diskon_membership) }}</td>
                                                         </tr>
                                                     @endif
                                                     @if ($rents->diskon)
                                                         <tr>
                                                             <th colspan="2">Diskon
                                                                 ({{ $rents->kode_promo }})</th>
-                                                            <th>{{ Helper::rupiah($rents->diskon) }}</th>
+                                                            <td>-{{ Helper::rupiah($rents->diskon) }}</td>
                                                         </tr>
+                                                    @endif
+                                                    @if ($rents->RentPayment)
+                                                        @if ($rents->RentPayment->note == "B-Poin")
+                                                        <tr>
+                                                            <th colspan="2">B-Poin</th>
+                                                            <td>-{{ Helper::rupiah($rentDetail->OpeningHourDetail->price) }}
+                                                            </td>
+                                                        </tr>
+                                                        @endif
                                                     @endif
                                                     <tr>
                                                         <th colspan="2">Total Harga</th>

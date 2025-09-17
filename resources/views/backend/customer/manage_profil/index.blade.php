@@ -62,7 +62,6 @@
                                                             {{ $customer->last_name }}<br>
                                                             Alamat &ensp;: {{ $customer->address }}<br>
                                                             No HP&emsp;&ensp;: {{ $customer->handphone }}<br>
-                                                            Poin &emsp;&ensp;&ensp;: {{ $point->point_balance }} B-Poin<br>
                                                         </p>
                                                     </div><!-- End .card-body -->
                                                 </div><!-- End .card-dashboard -->
@@ -79,7 +78,46 @@
                                                     </center>
                                                 </div><!-- End .card-dashboard -->
                                             </div><!-- End .col-lg-6 -->
-                                        </div><!-- End .row -->
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-lg-12">
+                                                <div class="card card-dashboard">
+                                                    <div class="card-body">
+                                                        <h3 class="card-title mb-3">Poin per Venue</h3>
+
+                                                        <div class="table-responsive">
+                                                            <table class="table table-striped table-bordered align-middle mb-0">
+                                                                <thead class="thead-dark">
+                                                                    <tr>
+                                                                        <th style="width: 60%;" class="text-center">Venue</th>
+                                                                        <th class="text-center" style="width: 40%;">Total Poin</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @forelse($points as $point)
+                                                                        <tr>
+                                                                            <td class="text-center">{{ $point->venue->name ?? '-' }}</td>
+                                                                            <td class="text-center">
+                                                                                <span class="badge">
+                                                                                    {{ $point->point_balance }} B-Poin
+                                                                                </span>
+                                                                            </td>
+                                                                        </tr>
+                                                                    @empty
+                                                                        <tr>
+                                                                            <td colspan="2" class="text-center text-muted">
+                                                                                Belum ada poin
+                                                                            </td>
+                                                                        </tr>
+                                                                    @endforelse
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     @endforeach
                                 </div><!-- .End .tab-pane -->
 
