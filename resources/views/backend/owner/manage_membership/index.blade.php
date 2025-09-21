@@ -71,6 +71,12 @@
                                                         <a href="/owner/membership/{{ $membership['membership_id'] }}/reject"
                                                             class="btn btn-danger">Tolak</a>
                                                     </td>
+                                                @elseif ($membership['membership_status'] === 3)
+                                                    <td>Ditolak</td>
+                                                    <td>
+                                                        <a href="/owner/membership/{{ $membership['membership_id'] }}"
+                                                            class="btn btn-info">Detail</a>
+                                                    </td>
                                                 @else
                                                     <td>
                                                         <a href="/owner/membership/{{ $membership['membership_id'] }}"
