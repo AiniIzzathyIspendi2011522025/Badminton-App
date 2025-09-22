@@ -128,35 +128,139 @@
                                     aria-labelledby="tab-password-link">
                                     @include('auth.passwords.change')
                                 </div><!-- .End .tab-pane -->
-                                <div class="tab-pane fade" id="tab-membership" role="tabpanel"
-                                    aria-labelledby="tab-membership-link">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Venue</th>
-                                                <th scope="col">Mulai</th>
-                                                <th scope="col">Berakhir</th>
-                                                <th scope="col">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($memberships as $membership)
-                                                <tr>
-                                                    <td>{{ $membership->venue->name }}</td>
-                                                    <td>{{ $membership->start_date }}</td>
-                                                    <td>{{ $membership->end_date }}</td>
-                                                    @if ($membership->membership_status === 1)
-                                                        <td>Aktif</td>
-                                                    @elseif ($membership->membership_status === 2)
-                                                        <td>Sedang di Proses</td>
-                                                    @else
-                                                        <td>Tidak Aktif</td>
-                                                    @endif
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div><!-- .End .tab-pane -->
+                                <style>
+                                .member-card {
+                                    background: #0f2a44;           /* navy gelap */
+                                    color: #fff;
+                                    border-radius: 16px;
+                                    padding: 20px 22px;
+                                    position: relative;
+                                    overflow: hidden;
+                                    min-height: 180px;
+                                }
+                                .member-card .watermark {
+                                    position: absolute;
+                                    right: -30px; bottom: -20px;
+                                    font-weight: 800;
+                                    font-size: 72px;
+                                    opacity: .06; letter-spacing: 2px;
+                                    text-transform: uppercase;
+                                    pointer-events: none;
+                                    user-select: none;
+                                }
+                                .member-card .brand-mark {
+                                    position: absolute;
+                                    top: 16px; right: 16px;
+                                    width: 58px; height: 58px;
+                                    border: 2px solid #fff; border-radius: 10px;
+                                    display: grid; place-items: center;
+                                    font-weight: 800; letter-spacing: 1px;
+                                }
+                                .member-card .title {
+                                    font-weight: 800;
+                                    font-size: 22px;
+                                    letter-spacing: 2px;
+                                    margin: 12px 0 14px;
+                                }
+                                .member-card .label {
+                                    font-size: 11px; opacity: .8; letter-spacing: 1px;
+                                }
+                                .member-card .bar {
+                                    height: 22px; background: #f2f4f7; border-radius: 4px; margin: 4px 0 10px;
+                                }
+                                .member-card .small-box {
+                                    height: 22px; background: #f2f4f7; border-radius: 4px; margin-top: 4px;
+                                }
+                                .member-card .meta {
+                                    font-size: 11px; opacity: .85; letter-spacing: .5px;
+                                }
+                                .member-card .badge-status {
+                                    position: absolute; top: 16px; left: 16px;
+                                    font-size: 11px; letter-spacing: .6px;
+                                    background: #16a34a; /* default aktif */
+                                    border-radius: 999px; padding: 4px 10px; font-weight: 600;
+                                }
+                                .member-card.status-processing .badge-status { background:#fbbf24; color:#111827; }
+                                .member-card.status-inactive  .badge-status { background:#6b7280; }
+                                </style>
+
+                                <div class="tab-pane fade" id="tab-membership" role="tabpanel" aria-labelledby="tab-membership-link">
+                                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                                    @foreach ($memberships as $m)
+                                    @php
+                                        $statusClass = $m->membership_status === 1 ? 'status-active' : ($m->membership_status === 2 ? 'status-processing' : 'status-inactive');
+                                        $statusText  = $m->membership_status === 1 ? 'AKTIF' : ($m->membership_status === 2 ? 'SEDANG DIPROSES' : 'TIDAK AKTIF');
+                                        $FirstLetter = strtoupper(substr($m->venue->name, 0, 2));
+                                    @endphp
+
+                                    <div class="col">
+                                    <div class="member-card {{ $statusClass }}">
+                                        {{-- Badge status & Brand mark di pojok atas --}}
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="brand-mark z-3">{{ $FirstLetter }}</div>
+                                            <span class="badge-status">{{ $statusText }}</span>
+                                        </div>
+
+                                        {{-- Judul --}}
+                                        <h5 class="text-center fw-bold mb-3 text-white">MEMBERSHIP CARD</h5>
+
+                                        {{-- Nama Member --}}
+                                        <div class="mb-2">
+                                            <div class="label text-uppercase">Name</div>
+                                            <div class="bar d-flex align-items-center px-2 text-dark"
+                                                title="{{ $m->user->last_name }} {{ $m->user->first_name ?? '-' }}">
+                                                <small class="text-truncate">
+                                                    {{ $m->user->last_name }} {{ $m->user->first_name ?? '-' }}
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        {{-- Member No., Since, dan End Date --}}
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-4">
+                                                <div class="label text-uppercase">Member ID.</div>
+                                                <div class="small-box d-flex align-items-center px-2 text-dark"
+                                                    title="{{ $m->id ?? '-' }}">
+                                                    <small class="text-truncate w-100">{{ $FirstLetter }} - {{ $m->id ?? '—' }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="label text-uppercase">Since</div>
+                                                <div class="small-box d-flex align-items-center px-2 text-dark"
+                                                    title="{{ \Carbon\Carbon::parse($m->start_date)->format('M Y') }}">
+                                                    <small class="text-truncate w-100">
+                                                        {{ \Carbon\Carbon::parse($m->start_date)->format('d M Y') }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="label text-uppercase">End Date</div>
+                                                <div class="small-box d-flex align-items-center px-2 text-dark"
+                                                    title="{{ \Carbon\Carbon::parse($m->end_date)->format('M Y') }}">
+                                                    <small class="text-truncate w-100">
+                                                        {{ \Carbon\Carbon::parse($m->end_date)->format('d M Y') }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Footer: alamat venue --}}
+                                        <div class="d-flex flex-wrap gap-1 mt-3 meta small text-white">
+                                            <span class="text-uppercase fw-semibold">{{ $m->venue->name }}</span>
+                                            <span>•</span>
+                                            <span>{{ $m->venue->address ?? '—' }}</span>
+                                        </div>
+
+                                        {{-- Watermark dekoratif --}}
+                                        <div class="watermark">Member</div>
+                                    </div>
+                                </div>
+
+                                    @endforeach
+                                </div>
+                                </div>
+
+
                                 <div class="tab-pane fade" id="tab-point" role="tabpanel" aria-labelledby="tab-point-link">
                                     <table class="table table-hover">
                                         <thead>
