@@ -97,26 +97,33 @@
                         </div><!-- End .toolbox-right -->
                     </div><!-- End .toolbox -->
 
-                    <div class="col-12 col-md-4 col-xl-3">
-                        <div class="product border" style="border-radius: 1.5rem;">
-                            <figure class="product-media">
-                                <a href="{{ route('commerce.show', $venue->id) }}">
-                                    <img src="{{ asset('images/venue/' . $venue->FirstImage()->image) }}"
-                                        alt="Product image" class="product-image" style="height: 120px;">
-                                </a>
-                            </figure>
-                            <div class="product-body">
-                                <h3 class="product-title h4">
-                                    <a href="{{ route('commerce.show', $venue->id) }}">
-                                        {{ $venue->name }}
-                                    </a>
-                                </h3>
-                                <div style="font-size: 12px">
-                                    <span>{{ $venue->address }}</span>
+                    <div class="row">
+                        @foreach ($venues as $venue)
+                            <div class="col-12 col-md-4 col-xl-3 mb-3 d-flex">
+                                <div class="product border flex-fill d-flex flex-column" style="border-radius: 1.5rem;">
+                                    <figure class="product-media">
+                                        <a href="{{ route('commerce.show', $venue->id) }}">
+                                            <img src="{{ asset('images/venue/' . $venue->FirstImage()->image) }}"
+                                                alt="Product image" class="product-image"
+                                                style="height: 120px; width:100%; object-fit: cover; border-top-left-radius: 1.5rem; border-top-right-radius: 1.5rem;">
+                                        </a>
+                                    </figure>
+                                    <div class="product-body d-flex flex-column flex-grow-1">
+                                        <h3 class="product-title h4">
+                                            <a href="{{ route('commerce.show', $venue->id) }}">
+                                                {{ $venue->name }}
+                                            </a>
+                                        </h3>
+                                        <div style="font-size: 12px; margin-top: auto;">
+                                            <span>{{ $venue->address }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @endforeach
                     </div>
+
+
                     <!-- End .products -->
 
                     <!-- <nav aria-label="Page navigation">                                                                                                                                 </nav> -->

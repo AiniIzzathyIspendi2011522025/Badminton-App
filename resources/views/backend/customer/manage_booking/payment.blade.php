@@ -74,10 +74,16 @@
                                             $diskon_membership =
                                                 ($total_price * $membership->venue->membership_discount) / 100;
                                         @endphp
-                                        <td>Diskon Membership ({{ $membership->venue->membership_discount }}%) :</td>
-                                        <td>{{ Helper::rupiah($diskon_membership) }}</td>
+                                        <tr>
+                                            <td>Diskon Membership ({{ $membership->venue->membership_discount }}%) :</td>
+                                            <td>{{ Helper::rupiah($diskon_membership) }}</td>
+                                        </tr>
                                         <input value="{{ $diskon_membership }}" name="diskon_membership" type="hidden">
                                     @endif
+                                    <tr id="point-spent-row" style="display: none;">
+                                        <td>Potongan Poin :</td>
+                                        <td>{{ Helper::rupiah($detail->OpeningHourDetail->price) }}</td>
+                                    </tr>
                                     <tr class="summary-shipping-row font-bold">
                                         @if (session()->has('kode'))
                                             <?php
@@ -151,15 +157,19 @@
                                             <td>&nbsp;</td>
                                         </tr>
                                     @endforeach
-                                    @if ($user->pointBalance->point_balance >= 1000)
+                                    @if (($pointBalance?->point_balance ?? 0) >= 1000)
                                         <tr class="summary-shipping-row">
                                             <td>
                                                 <div class="custom-control custom-radio">
-                                                    <input type="checkbox" id="B-Poin" name="point_spent" value="1000"
-                                                        @if ($user->pointBalance->point_balance <= 100) disabled @endif
+                                                    <input type="checkbox"
+                                                        id="B-Poin"
+                                                        name="point_spent"
+                                                        value="1000"
+                                                        @if (($pointBalance?->point_balance ?? 0) < 1000) disabled @endif
                                                         class="custom-control-input" required>
-                                                    <label class="custom-control-label" for="B-Poin">B-Poin
-                                                        ({{ $user->pointBalance->point_balance }} Poin)
+
+                                                    <label id="B-Poin-label" class="custom-control-label" for="B-Poin">
+                                                        B-Poin ({{ $pointBalance?->point_balance ?? 0 }} Poin)
                                                     </label>
                                                 </div>
                                             </td>
@@ -317,12 +327,32 @@
         var inputTotalPrice = document.getElementById('input-total-price');
         var inputPointEarned = document.getElementById('point_earned_input');
         var pointAlert = document.getElementById('point-alert');
+        var diskonMembership = parseInt({{ ($membership && $membership->membership_status === 1) ? $diskon_membership : 0 }});
+
+        const bpoinLabel = document.getElementById('B-Poin-label');
+        const pointSpentRow = document.getElementById('point-spent-row');
+        const paymentMethodRadios = document.getElementsByName('payment_method');
 
         bPoinCheckbox.addEventListener('change', function() {
+            let originalPrice = parseInt({{ $total_price }});
+            let totalSetelahDiskonAwal = originalPrice - diskonMembership; // Hitung diskon awal lagi
+
             if (bPoinCheckbox.checked) {
-                totalHargaSetelahDiskon -= harga_venue;
+                // Jika poin dicentang, total harga dikurangi harga lapangan setelah diskon awal
+                totalHargaSetelahDiskon = totalSetelahDiskonAwal - harga_venue;
+
+                // Pastikan total tidak minus
+                if (totalHargaSetelahDiskon < 0) {
+                    totalHargaSetelahDiskon = 0;
+                }
+
+                bpoinLabel.textContent = `B-Poin ({{ $pointBalance?->point_balance ?? 0 }} - 1000 Poin)`;
+                pointSpentRow.style.display = 'table-row';
             } else {
-                totalHargaSetelahDiskon = parseInt({{ $total_harga_setelah_diskon }});
+                // Jika tidak dicentang, kembalikan ke total setelah diskon awal
+                totalHargaSetelahDiskon = totalSetelahDiskonAwal;
+                bpoinLabel.textContent = `B-Poin ({{ $pointBalance?->point_balance ?? 0 }} Poin)`;
+                pointSpentRow.style.display = 'none';
             }
 
             document.getElementById('total-harga').textContent = formatRupiah(totalHargaSetelahDiskon);
