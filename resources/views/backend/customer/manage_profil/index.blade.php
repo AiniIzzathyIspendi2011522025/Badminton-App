@@ -185,7 +185,7 @@
                                 </style>
 
                                 <div class="tab-pane fade" id="tab-membership" role="tabpanel" aria-labelledby="tab-membership-link">
-                                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                                <div class="col g-4">
                                     @foreach ($memberships as $m)
                                     @php
                                         $statusClass = $m->membership_status === 1 ? 'status-active' : ($m->membership_status === 2 ? 'status-processing' : 'status-inactive');
@@ -193,7 +193,7 @@
                                         $FirstLetter = strtoupper(substr($m->venue->name, 0, 2));
                                     @endphp
 
-                                    <div class="col">
+                                    <div class="col mb-2">
                                     <div class="member-card {{ $statusClass }}">
                                         {{-- Badge status & Brand mark di pojok atas --}}
                                         <div class="d-flex justify-content-between align-items-start mb-2">
