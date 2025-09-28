@@ -17,6 +17,10 @@
             <div class="container">
                 <div class="row">
                     <div class="col-lg-7">
+                        @php
+                            $hoursBooked   = $rent->RentDetail->count();                           // jumlah jam dibooking
+                            $oneHourPrice  = optional($rent->RentDetail->first())->OpeningHourDetail->price ?? 0; // harga 1 jam
+                        @endphp
 
                         <table class="table table-cart table-mobile">
                             <thead>
@@ -80,10 +84,12 @@
                                         </tr>
                                         <input value="{{ $diskon_membership }}" name="diskon_membership" type="hidden">
                                     @endif
+
                                     <tr id="point-spent-row" style="display: none;">
                                         <td>Potongan Poin :</td>
-                                        <td>{{ Helper::rupiah($detail->OpeningHourDetail->price) }}</td>
+                                        <td>{{ Helper::rupiah($oneHourPrice) }}</td>
                                     </tr>
+
                                     <tr class="summary-shipping-row font-bold">
                                         @if (session()->has('kode'))
                                             <?php
@@ -157,17 +163,16 @@
                                             <td>&nbsp;</td>
                                         </tr>
                                     @endforeach
-                                    @if (($pointBalance?->point_balance ?? 0) >= 1000)
+
+                                    @if (($pointBalance?->point_balance ?? 0) >= 1000 && $hoursBooked >= 2)
                                         <tr class="summary-shipping-row">
                                             <td>
-                                                <div class="custom-control custom-radio">
+                                                <div class="custom-control custom-checkbox">
                                                     <input type="checkbox"
                                                         id="B-Poin"
                                                         name="point_spent"
                                                         value="1000"
-                                                        @if (($pointBalance?->point_balance ?? 0) < 1000) disabled @endif
-                                                        class="custom-control-input" required>
-
+                                                        class="custom-control-input">
                                                     <label id="B-Poin-label" class="custom-control-label" for="B-Poin">
                                                         B-Poin ({{ $pointBalance?->point_balance ?? 0 }} Poin)
                                                     </label>
@@ -323,7 +328,7 @@
     <script>
         var bPoinCheckbox = document.getElementById('B-Poin');
         var totalHargaSetelahDiskon = parseInt({{ $total_harga_setelah_diskon }});
-        var harga_venue = parseInt({{ $detail->OpeningHourDetail->price }})
+        var harga_venue = parseInt({{ $oneHourPrice }});
         var inputTotalPrice = document.getElementById('input-total-price');
         var inputPointEarned = document.getElementById('point_earned_input');
         var pointAlert = document.getElementById('point-alert');
@@ -333,40 +338,38 @@
         const pointSpentRow = document.getElementById('point-spent-row');
         const paymentMethodRadios = document.getElementsByName('payment_method');
 
-        bPoinCheckbox.addEventListener('change', function() {
-            let originalPrice = parseInt({{ $total_price }});
-            let totalSetelahDiskonAwal = originalPrice - diskonMembership; // Hitung diskon awal lagi
+        if (bPoinCheckbox) {
+            bPoinCheckbox.addEventListener('change', function() {
+                let originalPrice = parseInt({{ $total_price }});
+                let totalSetelahDiskonAwal = originalPrice - diskonMembership; // Hitung diskon awal lagi
 
-            if (bPoinCheckbox.checked) {
-                // Jika poin dicentang, total harga dikurangi harga lapangan setelah diskon awal
-                totalHargaSetelahDiskon = totalSetelahDiskonAwal - harga_venue;
+                if (bPoinCheckbox.checked) {
+                    // Diskon 1 jam
+                    totalHargaSetelahDiskon = totalSetelahDiskonAwal - harga_venue;
 
-                // Pastikan total tidak minus
-                if (totalHargaSetelahDiskon < 0) {
-                    totalHargaSetelahDiskon = 0;
+                    // Pastikan total tidak minus
+                    if (totalHargaSetelahDiskon < 0) {
+                        totalHargaSetelahDiskon = 0;
+                    }
+
+                    if (bpoinLabel) bpoinLabel.textContent = `B-Poin ({{ $pointBalance?->point_balance ?? 0 }} - 1000 Poin)`;
+                    if (pointSpentRow) pointSpentRow.style.display = 'table-row';
+                } else {
+                    // Kembali ke total setelah diskon awal
+                    totalHargaSetelahDiskon = totalSetelahDiskonAwal;
+                    if (bpoinLabel) bpoinLabel.textContent = `B-Poin ({{ $pointBalance?->point_balance ?? 0 }} Poin)`;
+                    if (pointSpentRow) pointSpentRow.style.display = 'none';
                 }
 
-                bpoinLabel.textContent = `B-Poin ({{ $pointBalance?->point_balance ?? 0 }} - 1000 Poin)`;
-                pointSpentRow.style.display = 'table-row';
-            } else {
-                // Jika tidak dicentang, kembalikan ke total setelah diskon awal
-                totalHargaSetelahDiskon = totalSetelahDiskonAwal;
-                bpoinLabel.textContent = `B-Poin ({{ $pointBalance?->point_balance ?? 0 }} Poin)`;
-                pointSpentRow.style.display = 'none';
-            }
-
-            document.getElementById('total-harga').textContent = formatRupiah(totalHargaSetelahDiskon);
-
-            inputTotalPrice.value = totalHargaSetelahDiskon;
-
-            inputPointEarned.value = formatPointEarned(totalHargaSetelahDiskon);
-
-            pointAlert.innerHTML = `
-            <p>Selamat!! , Kamu Mendapatkan
-                <strong>${formatPointEarned(totalHargaSetelahDiskon)} poin</strong> jika menyelesaikan transaksi ini
-            </p>
-        `;
-        });
+                document.getElementById('total-harga').textContent = formatRupiah(totalHargaSetelahDiskon);
+                inputTotalPrice.value = totalHargaSetelahDiskon;
+                inputPointEarned.value = formatPointEarned(totalHargaSetelahDiskon);
+                pointAlert.innerHTML = `
+                <p>Selamat!! , Kamu Mendapatkan
+                    <strong>${formatPointEarned(totalHargaSetelahDiskon)} poin</strong> jika menyelesaikan transaksi ini
+                </p>`;
+            });
+        }
 
         // Fungsi untuk memformat angka menjadi format mata uang rupiah
         function formatRupiah(angka) {
