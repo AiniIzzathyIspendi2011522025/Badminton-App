@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Auth;
 
 class PromoController extends Controller
 {
-    public function index()
+
+    public function index()//List Promo
     {
 
         // Mengambil owner yang sedang login
@@ -35,16 +36,17 @@ class PromoController extends Controller
     public function store(Request $request)
     {
         try {
-
+            //validasi inputan user
             $validated = $request->validate([
                 'kode' => 'required|string',
                 'diskon' => 'required'
             ]);
 
-            $user = Auth::user();
+
+            $user = Auth::user(); //mengambil user yhang sedang login
             $user_id = $user->id;
             $kode = strtoupper($validated['kode']);
-            $diskon = $validated['diskon'] / 100;
+            $diskon = $validated['diskon'] / 100; //Buat jadi persen
 
             Promo::create([
                 'kode' => $kode,
@@ -54,7 +56,7 @@ class PromoController extends Controller
 
             return redirect('/owner/promo');
         } catch (\Exception $e) {
-            dd($e);
+            dd($e); //cek error
         }
     }
 
@@ -89,7 +91,7 @@ class PromoController extends Controller
     {
         $kode_promo = strtoupper($request->kode);
         $user_id = ($request->owner_id);
-        $kode = Promo::where('kode', $kode_promo)->where('user_id', $user_id)->first();
+        $kode = Promo::where('kode', $kode_promo)->where('user_id', $user_id)->first(); //cari promo
         // dd($user_id);
         if (!$kode) {
             return redirect()->back()->withErrors('Kode Promo tidak valid, Coba lagi!');

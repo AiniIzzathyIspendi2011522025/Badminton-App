@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class OpeningHourDetail extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'field_id',
+        'opening_hour_id',
+        'price',
+    ];
 
     public function Field()
     {

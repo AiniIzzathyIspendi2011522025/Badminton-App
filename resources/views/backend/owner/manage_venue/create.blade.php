@@ -579,22 +579,22 @@
             )
         }
 
-        function duplicate(id) {
-            var next = id + 1;
-            for (var i = 1; i <= $('.day' + id).length; i++) {
-                if ($('#hour' + id + i).prop("checked") == true) {
-                    $('#hour' + next + i).prop("checked", true);
-                }
-            }
-            $('#select' + next).toggle();
-            if ($('#select' + next).is(":visible")) {
-                document.getElementById('status' + next).innerHTML = "Open";
-                $('#day' + next).prop("checked", true);
-            } else {
-                document.getElementById('status' + next).innerHTML = "Close";
-                $('#day' + next).prop("checked", false);
-            }
+        function duplicate(day) {
+        var next = day + 1;
 
+        // Salin semua checkbox yang id-nya diawali "hour{day}"
+        $('[id^="hour' + day + '"]').each(function () {
+            // Ambil suffix angka jam dari ID sumber, mis: "hour1" + "13" => suffix "13"
+            var suffix = this.id.replace('hour' + day, '');
+            // Set ke checkbox tujuan "hour{next}{suffix}"
+            $('#hour' + next + suffix).prop('checked', this.checked);
+        });
+
+        // Toggle bagian select next + status open/close
+        var $next = $('#select' + next).toggle();
+        var visible = $next.is(':visible');
+        $('#status' + next).text(visible ? 'Open' : 'Close');
+        $('#day' + next).prop('checked', visible);
         }
 
 

@@ -241,7 +241,7 @@ class MasterSeeder extends Seeder
             ],
             [
             'name' => 'Waiting Room',
-            'icon' => ''  
+            'icon' => ''
             ],
             [
             'name' => 'Charge Station',
@@ -292,22 +292,22 @@ class MasterSeeder extends Seeder
         ]);
         DB::table('field_types')->insert([
             [
-            'name' => 'Lapangan Futsal Vinyl'
+            'name' => 'Lapangan Badminton Vinyl'
             ],
             [
-            'name' => 'Lapangan Futsal Rumput Sintetis'
+            'name' => 'Lapangan Badminton Rumput Sintetis'
             ],
             [
-            'name' => 'Lapangan Futsal Semen'
+            'name' => 'Lapangan Badminton Semen'
             ],
             [
-            'name' => 'Lapangan Futsal Parquette'
+            'name' => 'Lapangan Badminton Parquette'
             ],
             [
-            'name' => 'Lapangan Futsal Taraflex'    
+            'name' => 'Lapangan Badminton Taraflex'
             ],
             [
-            'name' => 'Lapangan Futsal Karpet Plastik'    
+            'name' => 'Lapangan Badminton Karpet Plastik'
             ]
         ]);
     }

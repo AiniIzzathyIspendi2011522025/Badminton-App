@@ -75,7 +75,7 @@
                                                         data-live-search="true" onchange="this.className = ''"
                                                         style="max-height: 10px !important;">
                                                         @foreach ($field_type as $type)
-                                                            <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                                        <option value="{{ $type->id }}">{{ $type->name }}</option>
                                                         @endforeach
                                                     </select>
                                                     @error('field_type')
@@ -300,9 +300,6 @@
                             x + `">
                                     </div>
                                 </div>
-                                </div>
-                                <div class="form-group col-md-12">
-                                    <a href="javascript:void(0)" onClick="cloneForm(` + x + `)" class="btn btn-primary btn-outline">Tambah</a>
                                 </div>`);
                         $('#selectgroup' + x).append(div);
                         ajaxHour(select[x], x, y);
@@ -325,15 +322,6 @@
                             x + `">
                                     </div>
                                 </div>
-                                <div class="form-group col-md-12">
-                                <a href="javascript:;" onclick="delClone(this)"
-                                            class="btn btn-outline-secondary" >
-                                            Delete
-                                        </a>
-                                </div>
-                                </div>
-                                <div class="form-group col-md-12">
-                                    <a href="javascript:void(0)" onClick="cloneForm(` + x + `)" class="btn btn-primary btn-outline">Tambah</a>
                                 </div>`);
                         $('#selectgroup' + x).append(div);
                         ajaxHour(select[x], x, y);

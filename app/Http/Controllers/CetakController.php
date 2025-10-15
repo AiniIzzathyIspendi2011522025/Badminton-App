@@ -20,13 +20,15 @@ class CetakController extends Controller
         $qrcode = QrCode::size(100)->generate('http://localhost:8000/owner/booking/' . $rents->id . '/show');
         $data = [
             'rents' => $rents,
+            'rentPayment' => $rents->rentPayment,
             'qrcode' => $qrcode
         ];
         // dd($data);
         // $pdf = PDF::loadView('backend.customer.manage_booking.invoice', $rents);
         $pdf = PDF::loadView('backend.customer.manage_booking.invoice', $data);
-
-        return $pdf->download('Laporan Transaksi.pdf');
+        $now = date('Y-m-d, H-i-s');
+        $fileName = 'Invoice-' . $rents->id . '-' . $now . '.pdf';
+        return $pdf->download($fileName);
 
     }
 }

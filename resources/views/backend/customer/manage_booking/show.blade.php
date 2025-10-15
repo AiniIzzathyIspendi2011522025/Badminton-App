@@ -161,7 +161,7 @@
 
                                         <div class="visible-print text-center"
                                         style="margin-top: 25px; margin-bottom: 50px;" style="color: black">
-                                        {!! QrCode::size(100)->generate('http://localhost:8000/owner/booking/' . $rents->id . '/show') !!}
+                                        {!! QrCode::size(100)->generate('http://127.0.0.1:8000/owner/booking/' . $rents->id . '/show') !!}
 
                                         </div>
                                         </tr><!-- End .summary-total -->

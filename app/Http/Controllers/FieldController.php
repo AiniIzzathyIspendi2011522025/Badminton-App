@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 use File;
 use Storage;
 use DB;
-
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class FieldController extends Controller
 {
@@ -137,32 +137,79 @@ class FieldController extends Controller
         }
     }
 
-    public function fieldScheduleUpdate(Request $request, $id){
-        try{
-            $fields = Field::find($id);
-            $key_day = array_keys($request->detail);
-            for($i = 0; $i < count($key_day); $i++){
-                for($x = 0; $x < count($request->detail[$key_day[$i]]); $x++){
-                    for($y = 0; $y < count($request->detail[$key_day[$i]][$x]); $y++){
-                        //dd($request->detail[$key_day[$i]][$x][$y]);
-                        $openingHour = OpeningHour::where('venue_id', $fields->Venue->id)
-                        ->where('day_id', $key_day[$i])
-                        ->where('hour_id', $request->detail[$key_day[$i]][$x][$y])
-                        ->first();
+    public function fieldScheduleUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'detail' => 'required|array', // struktur: [dayId => [groupIndex => [hourId, hourId, ...]]]
+            'price'  => 'required|array', // struktur: [dayId => [groupIndex => price]]
+        ]);
 
-                        $detail = OpeningHourDetail::where('field_id', $id)->where('opening_hour_id', $openingHour->id)->first();
-                        // dd($openingHour->id, $id);
-                        $detail->price = $request->price[$key_day[$i]][$x];
+        return FacadesDB::transaction(function () use ($request, $id) {
+            // Pastikan field & venue ada
+            $field = \App\Models\Field::with('Venue')->findOrFail($id);
+            $venueId = optional($field->Venue)->id;
+            if (!$venueId) {
+                return back()->withErrors('Venue tidak ditemukan untuk field ini.');
+            }
 
+            foreach ($request->detail as $dayId => $groups) {
+                // $groups = array of hourId arrays per groupIndex
+                if (!is_array($groups)) continue;
+
+                // Kumpulkan semua hour_id yang akan diproses untuk day ini
+                $allHourIds = [];
+                foreach ($groups as $groupIndex => $hourIds) {
+                    if (!is_array($hourIds)) $hourIds = [$hourIds];
+                    $allHourIds = array_merge($allHourIds, $hourIds);
+                }
+                $allHourIds = array_values(array_unique($allHourIds));
+                if (empty($allHourIds)) continue;
+
+                // Ambil semua OpeningHour sekali jalan
+                $openingHours = \App\Models\OpeningHour::query()
+                    ->where('venue_id', $venueId)
+                    ->where('day_id', $dayId)
+                    ->whereIn('hour_id', $allHourIds)
+                    ->get()
+                    ->keyBy('hour_id'); // key: hour_id -> OpeningHour
+
+                // Proses tiap group
+                foreach ($groups as $groupIndex => $hourIds) {
+                    if (!is_array($hourIds)) $hourIds = [$hourIds];
+
+                    // Ambil harga untuk group ini
+                    $price = data_get($request->price, "$dayId.$groupIndex");
+                    if ($price === null || $price === '') {
+                        // Lewati kalau tidak ada harga (atau bisa juga throw validation)
+                        continue;
+                    }
+
+                    foreach ($hourIds as $hourId) {
+                        $openingHour = $openingHours->get($hourId);
+
+                        // Jika opening hour tidak ditemukan, skip agar tidak error
+                        if (!$openingHour) {
+                            // Optional: catat ke log
+                            // \Log::warning("OpeningHour missing", compact('venueId','dayId','hourId'));
+                            continue;
+                        }
+
+                        // Upsert OpeningHourDetail
+                        $detail = \App\Models\OpeningHourDetail::firstOrNew([
+                            'field_id'        => $field->id,
+                            'opening_hour_id' => $openingHour->id,
+                        ]);
+
+                        $detail->price = $price;
                         $detail->save();
                     }
                 }
             }
-            return redirect()->route('owner.venue.field-show', $id)->with('success', __('toast.update.success.message'));
-        } catch (\Exception $e) {
-            dd($e);
-            return redirect()->back();
-        }
+
+            return redirect()
+                ->route('owner.venue.field-show', $id)
+                ->with('success', __('toast.update.success.message'));
+        });
     }
 
     public function fieldShow($id)

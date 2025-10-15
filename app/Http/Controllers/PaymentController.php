@@ -47,37 +47,36 @@ class PaymentController extends Controller
 
     public function pay(Request $request, $id){
         try {
+
+            // Point earned atau point spent didapatkan dari request dibuat hidden di frontend (detailPayment)
+
             $rent = Rent::with('field')->findOrFail($id);
 
-            // dd($request->all());
-
+            //cek jika masih valid (10 menit)
             if (Carbon::now() <= Carbon::parse($rent->created_at)->addMinutes(10)) {
                 if ($request->status == 2) {
                     $rent->dp = $request->dp;
                 }
 
-                $dir = public_path() . '/images/payment';
+                $dir = public_path() . '/images/payment'; //letak bukti pembayaran
                 $file = $request->file('payment');
 
                 if ($request->total_price > 0 && !$file) {
                     return back()->withErrors(['payment_proof' => 'Bukti pembayaran wajib diunggah jika ada sisa tagihan.']);
                 }
 
-                // Tahap 2: Proses - Jika lolos validasi, buat record pembayaran
+                //Jika lolos validasi, buat record pembayaran
                 if ($request->point_spent > 0 || $request->total_price > 0) {
                     $rentPayment = new RentPayment();
                     $rentPayment->rent_id = $rent->id;
                     $rentPayment->payment_method_detail_id = $request->payment_method;
 
-                    $request->total_price > 0 ? $rentPayment->note = 'B-Poin' : null;
-
-                    if($request->total_price > 0 && $request->point_spent > 0){
-                        $rentPayment->note = 'B-Poin';
-                    } elseif ($request->point_spent > 0) {
+                    // Note hanya diisi jika ada poin yang digunakan
+                    if ($request->point_spent > 0) {
                         $rentPayment->note = 'B-Poin';
                     }
 
-                    // Jika ada file yang diunggah, proses filenya.
+                    // Jika ada file yang diunggah
                     if ($file) {
                         $fileName = time() . "." . $file->getClientOriginalName();
                         $file->move($dir, $fileName);
@@ -114,6 +113,7 @@ class PaymentController extends Controller
                     ->where('venue_id', $venueId)
                     ->first();
 
+                //jika user belum ada balance buat defaultnya jadi 0
                 if (!$pointBalance) {
                     $pointBalance = new PointBalance();
                     $pointBalance->user_id = $user->id;
@@ -121,11 +121,12 @@ class PaymentController extends Controller
                     $pointBalance->point_balance = 0;
                 }
 
+                //perhitungan point
                 $pointBalance->point_balance += $request->point_earned;
                 $pointBalance->point_balance -= $request->point_spent;
                 $pointBalance->save();
 
-                session()->forget('kode');
+                session()->forget('kode'); //reset kode promo
                 return redirect()->route('customer.booking.index')
                     ->with('success', __('toast.create.success.message'));
             } else {

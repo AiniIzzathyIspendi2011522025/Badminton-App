@@ -1,6 +1,65 @@
 @extends('layouts.landing.home')
 
+<style>
+  .loyalty-banner{
+    --lb-bg: #0ea5e9;      /* cyan-500 */
+    --lb-bg2:#22c55e;      /* green-500 */
+    --lb-fg:#0f172a;       /* slate-900 */
+    --lb-card:#ffffff;
+    --lb-muted:#475569;    /* slate-600 */
+    --lb-ring: rgba(14,165,233,.25);
+
+    background: linear-gradient(120deg, rgba(14,165,233,.10), rgba(34,197,94,.10));
+    border: 1px solid rgba(15,23,42,.06);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .lb-row{ display:flex; gap:14px; align-items:flex-start; }
+  .lb-icon{
+    color:#0891b2; background:#ecfeff; border-radius:12px;
+    width:48px; height:48px; display:grid; place-items:center;
+    box-shadow: 0 6px 18px rgba(8,145,178,.15) inset;
+    flex:0 0 48px;
+  }
+  .lb-content{ flex:1; min-width:0; }
+  .lb-head{ display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+  .lb-kicker{
+    font-size:.75rem; letter-spacing:.04em; text-transform:uppercase;
+    color: var(--lb-muted);
+  }
+  .lb-badge{
+    font-size:.7rem; padding:2px 8px; border-radius:999px;
+    background:linear-gradient(90deg, var(--lb-bg), var(--lb-bg2));
+    color:white; font-weight:600;
+  }
+  .lb-title{ margin:0 0 4px; color:var(--lb-fg); font-weight:700; }
+  .lb-sub{ margin:0 0 10px; color: var(--lb-muted); }
+  .lb-progress-wrap{ margin-top:6px; }
+  .lb-progress-bar{
+    height:10px; background:#e2e8f0; border-radius:999px; overflow:hidden;
+    position:relative;
+  }
+  .lb-progress-bar > span{
+    display:block; height:100%;
+    background:linear-gradient(90deg, var(--lb-bg), var(--lb-bg2));
+    box-shadow:0 0 0 2px var(--lb-ring);
+    transition: width .25s ease;
+  }
+  .lb-progress-meta{
+    display:flex; justify-content:space-between; gap:10px;
+    margin-top:6px; font-size:.9rem; color:var(--lb-muted);
+  }
+  .lb-remaining{ white-space:nowrap; }
+  @media (max-width: 480px){
+    .lb-progress-meta{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+
+
 @section('content')
+
+
     <div class="page-header text-center" style="background-image: url('{{ asset('images/field/' . $rent->Field->image) }}')">
         <div class="container">
             <h1 class="page-title" style="background-color:white;">
@@ -73,6 +132,7 @@
                                         <td>Tanggal :</td>
                                         <td>{{ date('d M Y', strtotime($rent->created_at)) }}</td>
                                     </tr>
+                                    {{-- Diskon memberhsip --}}
                                     @if ($membership && $membership->membership_status === 1)
                                         @php
                                             $diskon_membership =
@@ -89,7 +149,7 @@
                                         <td>Potongan Poin :</td>
                                         <td>{{ Helper::rupiah($oneHourPrice) }}</td>
                                     </tr>
-
+                                    {{-- Tampilkan jika user memilih promo --}}
                                     <tr class="summary-shipping-row font-bold">
                                         @if (session()->has('kode'))
                                             <?php
@@ -163,7 +223,7 @@
                                             <td>&nbsp;</td>
                                         </tr>
                                     @endforeach
-
+                                    {{-- Tampilkan jika poin sudah sampai 1000 --}}
                                     @if (($pointBalance?->point_balance ?? 0) >= 1000 && $hoursBooked >= 2)
                                         <tr class="summary-shipping-row">
                                             <td>
@@ -194,6 +254,7 @@
 
                                     <tr class="summary-total">
                                         @php
+                                        // Total diskon keseluruhan
                                             $diskon_total =
                                                 $diskon +
                                                 ($membership && $membership->membership_status === 1
@@ -205,6 +266,7 @@
                                         <td id="total-harga">{{ Helper::rupiah($total_harga_setelah_diskon) }}</td>
                                         <input value="{{ $total_harga_setelah_diskon }}" name="total_price"
                                             id="input-total-price" type="hidden">
+                                        {{-- Input hidden untuk point_earned dibagi 1000 dari total pembayaran --}}
                                         <input
                                             value="{{ number_format(($total_price - ($diskon + ($membership && $membership->membership_status === 1 ? $diskon_membership : 0))) / 1000, 0, ',', '.') }}"
                                             name="point_earned" type="hidden" id="point_earned_input">
@@ -245,15 +307,47 @@
                                 </div>
                             @endif
 
+                            @php
+                                // Hitung poin dari transaksi ini
+                                $pointsEarnedRaw = (int) round(($total_price - ($diskon + ($membership && $membership->membership_status === 1 ? $diskon_membership : 0))) / 1000);
 
-                            <div style="background: #CFF4FC;" class="alert mt-2 text-center" role="alert"
-                                id="point-alert">
-                                <p>Selamat!! , Kamu Mendapatkan
-                                    <strong>{{ number_format(($total_price - ($diskon + ($membership && $membership->membership_status === 1 ? $diskon_membership : 0))) / 1000, 0, ',', '.') }}
-                                        poin</strong> jika
-                                    menyelesaikan transaksi ini
+                                // Saldo poin saat ini
+                                $currentBalance = (int) ($pointBalance->point_balance ?? 0);
+
+                                // Target & progress
+                                $nextThreshold = 1000;
+                                $projected = $currentBalance + $pointsEarnedRaw;
+                                $remaining = max(0, $nextThreshold - $projected);
+                                $progress  = min(100, (int) floor(($projected / $nextThreshold) * 100));
+                            @endphp
+
+                            <div id="point-alert" class="loyalty-banner">
+                            <div class="lb-row">
+                                    <div class="lb-icon" aria-hidden="true">
+                                    <!-- Gift icon (SVG) -->
+                                    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                                        <path d="M20 12v8a2 2 0 0 1-2 2h-5v-10h7zM11 22H6a2 2 0 0 1-2-2v-8h7v10zM21 8h-4.17a3 3 0 1 0-4.66-3.4A3 3 0 1 0 8.17 8H4a1 1 0 0 0 0 2h7v-2h2v2h8a1 1 0 0 0 0-2zM9.5 6A1.5 1.5 0 1 1 12 4.5 1.5 1.5 0 0 1 9.5 6zm5 0A1.5 1.5 0 1 1 16 4.5 1.5 1.5 0 0 1 14.5 6z"/>
+                                    </svg>
+                                    </div>
+                                <div class="lb-content">
+                                <div class="lb-head">
+                                    <span class="lb-kicker">Program Poin</span>
+                                    <span class="lb-badge">Bonus</span>
+                                </div>
+
+                                <h5 class="lb-title">
+                                    Selamat! Kamu berpotensi mendapatkan
+                                    <strong id="pe-earned">{{ number_format($pointsEarnedRaw, 0, ',', '.') }}</strong> poin dari transaksi ini.
+                                </h5>
+
+                                <p class="lb-sub">
+                                    Kumpulkan hingga <strong>1.000 poin</strong> untuk klaim <strong><br> 1 jam gratis</strong>.<br class="d-sm-none" />
+                                    Poin dapat digunakan saat booking <strong>minimal 2 jam</strong>.
                                 </p>
+                                </div>
                             </div>
+                            </div>
+
 
                             <!-- Modal -->
                             <form action="{{ route('customer.promo.check') }}" method="POST">
@@ -333,6 +427,8 @@
         var inputPointEarned = document.getElementById('point_earned_input');
         var pointAlert = document.getElementById('point-alert');
         var diskonMembership = parseInt({{ ($membership && $membership->membership_status === 1) ? $diskon_membership : 0 }});
+        var diskonPromo = parseInt({{ $diskon }});
+
 
         const bpoinLabel = document.getElementById('B-Poin-label');
         const pointSpentRow = document.getElementById('point-spent-row');
@@ -341,6 +437,9 @@
         if (bPoinCheckbox) {
             bPoinCheckbox.addEventListener('change', function() {
                 let originalPrice = parseInt({{ $total_price }});
+                if(diskonPromo){
+                    originalPrice -= diskonPromo; // Kurangi diskon promo jika ada
+                }
                 let totalSetelahDiskonAwal = originalPrice - diskonMembership; // Hitung diskon awal lagi
 
                 if (bPoinCheckbox.checked) {

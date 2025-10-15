@@ -138,7 +138,7 @@ class MembershipController extends Controller
 
             // Jika sudah ACTIVE, tidak perlu ubah tanggal atau count_month lagi
             if ((int)$membership->membership_status !== 1) {
-                // Pada alur baru, tanggal & count_month sudah ditentukan saat pay()
+                // tanggal & count_month sudah ditentukan saat pay()
                 // Jadi di sini cukup mengaktifkan saja
                 $membership->membership_status = 1; // ACTIVE
                 $membership->save();
@@ -160,7 +160,7 @@ class MembershipController extends Controller
         try {
             $membership = Membership::lockForUpdate()->findOrFail($id);
 
-            // Disarankan jangan delete, tandai REJECTED agar jejak audit tersimpan
+            // tandai REJECTED agar jejak audit tersimpan
             $membership->membership_status = 3; // REJECTED
             $membership->save();
 

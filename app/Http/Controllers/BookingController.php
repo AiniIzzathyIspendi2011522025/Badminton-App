@@ -190,7 +190,14 @@ class BookingController extends Controller
                 return view('backend.customer.manage_booking.show', compact('rents', 'price'));
             } elseif (Auth::user()->thisOwner()) {
                 try {
+
+                    $user = Auth::user();
                     $rents = Rent::find($id);
+                    $owner = $rents->field->venue->owner;
+
+                    if($user->id != $owner->id) {
+                        return redirect()->back();
+                    }
                     // dd($rents);
                     return view('backend.owner.manage_booking.show', compact('rents'));
                 } catch (\Exception $e) {

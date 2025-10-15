@@ -263,7 +263,7 @@
                     <li>
                     <strong>Program Poin untuk Customer</strong>
                     <ul class="mt-2 mb-0 pl-3">
-                        <li><strong>Pemberian poin:</strong> Setiap kali customer menyelesaikan proses penyewaan lapangan melalui sistem, poin akan otomatis ditambahkan ke akun customer.</li>
+                        <li><strong>Pemberian poin:</strong> Setiap kali customer menyelesaikan proses penyewaan lapangan melalui sistem, poin akan otomatis ditambahkan ke akun customer senilai 0.1% dari total transaksi customer.</li>
                         <li><strong>Hak Owner:</strong> Dengan mendaftar sebagai <em>Owner</em>, Anda menyetujui penerapan fitur poin ini pada seluruh transaksi penyewaan lapangan yang dikelola melalui sistem.</li>
                         <li><strong>Aturan penukaran:</strong> Customer yang telah mengumpulkan minimal <em>1.000 poin</em> berhak menukarkan poin tersebut untuk memperoleh diskon senilai <em>1 (satu) jam</em> penggunaan.</li>
                         <li><strong>Kondisi berlaku:</strong> Diskon hanya dapat digunakan apabila customer melakukan penyewaan dengan durasi minimal <em>2 (dua) jam</em> dalam satu transaksi.</li>

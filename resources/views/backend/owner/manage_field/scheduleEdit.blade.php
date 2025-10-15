@@ -260,15 +260,6 @@
                             x + `">
                                     </div>
                                 </div>
-                                <div class="form-group col-md-12">
-                                <a href="javascript:;" onclick="delClone(this)"
-                                            class="btn btn-outline-secondary" >
-                                            Delete
-                                        </a>
-                                </div>
-                                </div>
-                                <div class="form-group col-md-12">
-                                    <a href="javascript:void(0)" onClick="cloneForm(` + x + `)" class="btn btn-primary btn-outline">Tambah</a>
                                 </div>`);
                         $('#selectgroup' + x).append(div);
                         ajaxHour(select[x], x, y);
