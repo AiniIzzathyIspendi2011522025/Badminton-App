@@ -161,14 +161,17 @@ class BookingController extends Controller
                     $rentDetail->opening_hour_detail_id = $detail->id;
                     $rentDetail->save();
                 }
-
-                $rent->total_price = $total_price;
+                $membership_discount = $total_price * ($request->membership_discount ?? 0) / 100;
+                $rent->diskon_membership = $membership_discount;
+                $rent->total_price = $total_price - $membership_discount;
                 $rent->save();
+
+                session()->forget('booking.membership');
             }
 
             return redirect()->back()->with('success', __('toast.create.success.message'));
         } catch (\Exception $e) {
-            ddd($e);
+            dd($e);
             return redirect()->back();
         }
     }
@@ -232,43 +235,88 @@ class BookingController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $rents = Rent::all();
+            $rent = Rent::with(['RentDetail.openingHourDetail'])->findOrFail($id);
 
-            $details = OpeningHourDetail::whereIn('id', $request->detail_id)->get();
-            $total_price = 0;
-            $rent = Rent::find($id);
-            $rent->field_id = $request->field;
+            $oldTotalAfter   = (int) $rent->getOriginal('total_price');         // total setelah diskon
+            $oldDiscountAmt  = (int) $rent->getOriginal('diskon_membership');   // jumlah diskon lama (jika ada)
+
+            // subtotal lama = jumlah harga dari detail lama
+            $oldSubtotal = 0;
+            foreach ($rent->RentDetail as $rd) {
+                $oldSubtotal += (int) optional($rd->openingHourDetail)->price;
+            }
+
+            // turunkan persen lama (fallback jika tidak ada input)
+            $oldPct = ($oldSubtotal > 0 && $oldDiscountAmt > 0)
+                ? (int) round(($oldDiscountAmt / $oldSubtotal) * 100)
+                : 0;
+
+            $rent->field_id    = $request->field;
             $rent->tenant_name = $request->tenant_name;
-            $rent->date = $request->date;
+            $rent->date        = $request->date;
+            $rent->status      = 2;
             $rent->total_price = 0;
-            $rent->status = 2;
-            $rent->token = Carbon::now()->format('dmyHis') . '' . (string) ($rents->count() + 1) . '' . $request->select_field . '' . $details[0]->Field->Venue->id;
+
+            $rent->token = now()->format('dmyHis')
+                . (string) (Rent::count() + 1)
+                . $request->field
+                . ($rent->field->venue_id ?? '');
+
             if ($request->status == 2) {
                 $rent->dp = $request->dp;
             }
             $rent->save();
 
-            foreach ($rent->RentDetail as $rentDetail) {
-                $rentDetail->delete();
+            //HAPUS DETAIL LAMA
+            $rent->RentDetail()->delete();
+
+            //BENTUK DETAIL BARU + HITUNG SUBTOTAL BARU
+            $details = OpeningHourDetail::whereIn('id', (array) $request->detail_id)->get();
+            if ($details->isEmpty()) {
+                return back()->withErrors('Detail jadwal tidak boleh kosong');
             }
 
+            $newSubtotal = 0;
             foreach ($details as $detail) {
-                $total_price = $total_price + $detail->price;
-                $rentDetail = new RentDetail;
-                $rentDetail->rent_id = $rent->id;
-                $rentDetail->opening_hour_detail_id = $detail->id;
-                $rentDetail->save();
+                $newSubtotal += (int) $detail->price;
+
+                $rd = new RentDetail;
+                $rd->rent_id                = $rent->id;
+                $rd->opening_hour_detail_id = $detail->id;
+                // $rd->hour_id = $detail->OpeningHour->hour_id ?? null;
+                $rd->save();
             }
 
-            $rent->total_price = $total_price;
+            //TENTUKAN PERSEN DISKON YANG DIPAKAI
+            // Urutan prioritas: request -> session -> persen lama -> 0
+            $pctFromRequest = (int) ($request->membership_discount ?? 0);
+            $pctFromSession = (int) session('booking.membership.membership_discount', 0);
+
+            $diskonPct = 0;
+            if ($pctFromRequest > 0) {
+                $diskonPct = $pctFromRequest;
+            } elseif ($pctFromSession > 0) {
+                $diskonPct = $pctFromSession;
+            } elseif ($oldPct > 0) {
+                $diskonPct = $oldPct;
+            }
+
+            // clamp persen
+            $diskonPct = max(0, min(100, $diskonPct));
+
+            //HITUNG JUMLAH DISKON & TOTAL BARU
+            $membership_discount = (int) round($newSubtotal * $diskonPct / 100);
+            $rent->diskon_membership = $membership_discount;     // jumlah diskon (rupiah)
+            $rent->total_price       = $newSubtotal - $membership_discount; // total setelah diskon
             $rent->save();
 
-            return redirect()->back()->with('success', __('toast.create.success.message'));
+            return back()->with('success', __('toast.create.success.message'));
         } catch (\Exception $e) {
             dd($e);
-            return redirect()->back();
+            return back();
         }
     }
+
 
     /**
      * Remove the specified resource from storage.

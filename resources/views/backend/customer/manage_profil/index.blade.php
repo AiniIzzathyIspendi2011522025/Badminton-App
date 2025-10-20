@@ -221,7 +221,7 @@
                                                 <div class="label text-uppercase">Member ID.</div>
                                                 <div class="small-box d-flex align-items-center px-2 text-dark"
                                                     title="{{ $m->id ?? '-' }}">
-                                                    <small class="text-truncate w-100">{{ $FirstLetter }} - {{ $m->id ?? '—' }}</small>
+                                                    <small class="text-truncate w-100">{{ $m->id ?? '-' }}</small>
                                                 </div>
                                             </div>
                                             <div class="col-4">

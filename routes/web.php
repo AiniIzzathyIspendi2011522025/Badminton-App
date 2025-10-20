@@ -127,6 +127,8 @@ Route::prefix('owner')->middleware(['auth', 'auth.thisOwner'])->name('owner.')->
 
     //membership
     Route::get('/membership', [MembershipController::class, 'owner'])->name('membership.owner');
+    Route::post('/membership/check', [MembershipController::class, 'checkMembership'])->name('membership.check');
+    Route::post('/membership/cancel', [MembershipController::class, 'cancelMembership'])->name('membership.cancel');
     Route::get('/membership/{id}', [MembershipController::class, 'show'])->name('membership.show');
     Route::get('/membership/{id}/confirm', [MembershipController::class, 'confirm'])->name('membership.confirm');
     Route::get('/membership/{id}/reject', [MembershipController::class, 'reject'])->name('membership.reject');

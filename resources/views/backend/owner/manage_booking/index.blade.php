@@ -79,12 +79,33 @@
     {!! Form::close() !!}
 @endsection
 
+@php
+    $bookingMembership = session('booking.membership');
+@endphp
+
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    {{-- Ekspor diskon membership ke JS --}}
+    <script>
+        window.MEMBERSHIP_DISCOUNT = {!! isset($bookingMembership['membership_discount']) ? (int) $bookingMembership['membership_discount'] : 'null' !!};
+
+        // Helper menghitung harga sesuai permintaan:
+        // price * membership_discount / 100 (hasilnya adalah nilai diskonnya, bukan harga setelah diskon)
+        function applyMembershipDiscount(rawPrice) {
+            if (window.MEMBERSHIP_DISCOUNT == null) return rawPrice;
+            return Math.round(rawPrice - rawPrice * (window.MEMBERSHIP_DISCOUNT / 100));
+        }
+
+        function formatK(rp) {
+            return (rp / 1000) + 'K';
+        }
+    </script>
+
     <script>
         $(document).ready(function() {
-            $('.dataTables-booking').DataTable({
-
+            // === DataTable (fix: assign ke variabel 'table') ===
+            var table = $('.dataTables-booking').DataTable({
                 responsive: true,
                 searchDelay: 500,
                 processing: true,
@@ -146,90 +167,47 @@
                         if (full.history == true) {
                             if (full.status != 1 || full.expired == 1) {
                                 return `` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(` +
-                                    data + `)"
-                            href="/owner/booking/` + data + `/show"><i class="fa fa-info"></i> Detail</a>` +
-                                    ``;
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(${data})"
+                                        href="/owner/booking/${data}/show"><i class="fa fa-info"></i> Detail</a>`;
                             } else {
                                 return `` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(` +
-                                    data + `)"
-                            href="/owner/booking/` + data + `/show"><i class="fa fa-info"></i> Detail</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-success" onclick="confirm(` +
-                                    data +
-                                    `)" href="javascript:void(0)"><i class="fa fa-check"></i> Terima</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="reject(` +
-                                    data +
-                                    `)" href="javascript:void(0)"><i class="fa fa-times"></i> Tolak</a>`
-
-                                    +
-                                    ``;
-
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(${data})"
+                                        href="/owner/booking/${data}/show"><i class="fa fa-info"></i> Detail</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-success" onclick="confirm(${data})" href="javascript:void(0)"><i class="fa fa-check"></i> Terima</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="reject(${data})" href="javascript:void(0)"><i class="fa fa-times"></i> Tolak</a>`;
                             }
                         } else {
                             if (full.status != 1) {
                                 return `` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(` +
-                                    data + `)"
-                            href="/owner/booking/` + data + `/show"><i class="fa fa-info"></i> Detail</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="confirm_delete(` +
-                                    data +
-                                    `)" href="javascript:void(0)"><i class="fa fa-trash"></i> Hapus</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-warning" onclick="edit(` +
-                                    data +
-                                    `)" href="javascript:void(0)" data-toggle="modal" data-target="#modal-editbooking"><i class="fa fa-pen"></i> Edit</a>`
-
-                                    +
-                                    ``;
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(${data})"
+                                        href="/owner/booking/${data}/show"><i class="fa fa-info"></i> Detail</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="confirm_delete(${data})" href="javascript:void(0)"><i class="fa fa-trash"></i> Hapus</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-warning" onclick="edit(${data})" href="javascript:void(0)" data-toggle="modal" data-target="#modal-editbooking"><i class="fa fa-pen"></i> Edit</a>`;
                             } else {
                                 return `` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(` +
-                                    data + `)"
-                            href="/owner/booking/` + data + `/show"><i class="fa fa-info"></i> Detail</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-success" onclick="confirm(` +
-                                    data +
-                                    `)" href="javascript:void(0)"><i class="fa fa-check"></i> Terima</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="reject(` +
-                                    data +
-                                    `)" href="javascript:void(0)"><i class="fa fa-times"></i> Tolak</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="confirm_delete(` +
-                                    data +
-                                    `)" href="javascript:void(0)"><i class="fa fa-trash"></i> Hapus</a>` +
-
-                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-warning" onclick="edit(` +
-                                    data +
-                                    `)" href="javascript:void(0)" data-toggle="modal" data-target="#modal-editbooking"><i class="fa fa-pen"></i> Edit</a>`
-
-
-                                    +
-                                    ``;
-
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-light" onclick="show(${data})"
+                                        href="/owner/booking/${data}/show"><i class="fa fa-info"></i> Detail</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-success" onclick="confirm(${data})" href="javascript:void(0)"><i class="fa fa-check"></i> Terima</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="reject(${data})" href="javascript:void(0)"><i class="fa fa-times"></i> Tolak</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-danger" onclick="confirm_delete(${data})" href="javascript:void(0)"><i class="fa fa-trash"></i> Hapus</a>` +
+                                    `<a type="button" style="margin-left:5px;" class="btn btn-icon btn-sm btn-warning" onclick="edit(${data})" href="javascript:void(0)" data-toggle="modal" data-target="#modal-editbooking"><i class="fa fa-pen"></i> Edit</a>`;
                             }
                         }
-
-
                     },
-                }, ],
+                }],
             });
+
             table.on('order.dt search.dt', function() {
                 table.column(0, {
-                    search: 'applied',
-                    order: 'applied'
-                }).nodes().each(function(cell, i) {
-                    cell.innerHTML = i + 1;
-                });
+                        search: 'applied',
+                        order: 'applied'
+                    })
+                    .nodes()
+                    .each(function(cell, i) {
+                        cell.innerHTML = i + 1;
+                    });
             }).draw();
+
             $('#btn-print').on('click', function(e) {
                 e.preventDefault();
                 table.button(0).trigger();
@@ -251,232 +229,217 @@
                 table.button(4).trigger();
             });
 
-        });
+            // === Booking form interactions (unchanged) ===
+            $('#c_field').prop("disabled", true);
+            $('#c_venue').prop("disabled", true);
 
-        function edit(id) {
-            $.ajax({
-                url: "{{ url('api/booking/apiEdit') }}?id=" + id,
-                dataType: 'json',
-                cache: false,
-                dataSrc: '',
-
-                success: function(data) {
-                    console.log(data);
-                    $('#e_tenant_name').val(data.tenant_name);
-                    $('#e_venue').val(data.venue).change();
-                    $('#e_field').val(data.field).change();
-                    $('#e_date').val(data.date);
-                    Editschedule(id);
-                    $('#edit-booking').attr('action', "/owner/booking/" + id);
-                }
-
+            $(".myselect2").select2({
+                width: '100%',
+                allowClear: true
             });
-        }
-
-        function Editschedule(id) {
-            var venue_id = $('#e_venue').val();
-            var field_id = $('#e_field').val();
-            var date = $('#e_date').val();
-            $.ajax({
-                url: "{{ url('api/select/editSchedule') }}?venue_id=" + venue_id + "&field_id=" + field_id +
-                    "&date=" + date + "&rent_id=" + id,
-                dataType: 'json',
-                cache: false,
-                dataSrc: '',
-
-                success: function(data) {
-                    var detail_id = data.map(function(item) {
-                        return item.detail_id;
-                    });
-                    var price = data.map(function(item) {
-                        return item.price;
-                    });
-                    var hour = data.map(function(item) {
-                        return item.hour;
-                    });
-                    var available = data.map(function(item) {
-                        return item.available;
-                    });
-
-                    $(".selectgroup-item").remove();
-                    for (i = 0; i < data.length; i++) {
-                        if (available[i] == 4) {
-                            var div = `<label class="selectgroup-item">
-                                            <input type="checkbox" name="detail_id[]" value="` + detail_id[i] + `" class="selectgroup-input"
-                                                checked>
-                                            <span class="selectgroup-button">
-                                                <b>` + hour[i] + `</b><br>
-                                                <b>` + price[i] / 1000 + `K</b>
-                                            </span>
-                                        </label>`;
-                        } else if (available[i] == 2) {
-                            var div = `<label class="selectgroup-item">
-                                            <input type="checkbox" name="detail_id[]" value="` + detail_id[i] + `" class="selectgroup-input"
-                                                disabled>
-                                            <span class="selectgroup-button" style="background-color:red; color:white">
-                                                <b>` + hour[i] + `</b><br>
-                                                <b>` + price[i] / 1000 + `K</b>
-                                            </span>
-                                        </label>`;
-                        } else {
-                            var div = `<label class="selectgroup-item">
-                                            <input type="checkbox" name="detail_id[]" value="` + detail_id[i] + `" class="selectgroup-input"
-                                                >
-                                            <span class="selectgroup-button">
-                                                <b>` + hour[i] + `</b><br>
-                                                <b>` + price[i] / 1000 + `K</b>
-                                            </span>
-                                        </label>`;
-                        }
-
-                        $("#hour-checkbox-edit").append(div);
-                    }
-
-                    console.log(data)
-                }
-
-            });
-        }
-
-        function extend(data) {
-            $.ajax({
-                url: "{{ url('api/booking/extend') }}?id=" + data,
-                dataType: 'json',
-                cache: false,
-                dataSrc: '',
-
-                success: function(data) {
-                    console.log(data);
-                    console.log(data.tenant_name);
-                    $('#m_tenant_name').text(data.tenant_name);
-                    $('#m_venue').text(data.venue);
-                    $('#m_field').text(data.field);
-                    $('#m_date').text(data.date);
-                }
-
-            });
-        }
-
-        $('#c_field').prop("disabled", true);
-        $('#c_venue').prop("disabled", true);
-
-        $(".myselect2").select2({
-            width: '100%',
-            allowClear: true
-        });
-        $('.myselect2').val(0).change();
-
-        function dateChange() {
-            $('#c_venue').prop("disabled", false);
             $('.myselect2').val(0).change();
-            $(".selectgroup-item").remove();
-        }
 
-        $('#c_venue').on('select2:select', function(e) {
-            let venue = $('#c_venue').val();
-            if (venue) {
-                $('#c_field').val(0).change();
+            window.dateChange = function dateChange() {
+                $('#c_venue').prop("disabled", false);
+                $('.myselect2').val(0).change();
                 $(".selectgroup-item").remove();
-                fethDataField(venue);
-                $('#c_field').prop("disabled", false);
-            } else {
-                $('#c_field').prop("disabled", true);
             }
-        });
 
-        function fethDataField(venue) {
-            let base_url = "{{ URL('api/select/field') }}";
-            $("#c_field").select2({
-                allowClear: true,
-                language: {
-                    noResults: function(params) {
-                        return "Tidak ada tipe room yang sesuai pada kos ini";
-                    }
-                },
-                tokenSeparators: [',', ' '],
-                ajax: {
-                    url: base_url + "/" + venue,
-                    dataType: "json",
-                    type: "GET",
-                    quietMillis: 50,
-                    data: function(params) {
-                        var queryParameters = {
-                            term: params.term
-                        }
-                        return queryParameters;
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: $.map(data, function(item) {
-                                return {
-                                    text: item.name,
-                                    id: item.id
-                                }
-                            })
-                        };
-                    }
-                }
-            });
-        }
-
-        $('#c_field').on('select2:select', function(e) {
-            var venue_id = $('#c_venue').val();
-            var field_id = $('#c_field').val();
-            var date = $('#c_date').val();
-            $.ajax({
-                url: "{{ url('api/select/schedule') }}?venue_id=" + venue_id + "&field_id=" + field_id +
-                    "&date=" + date,
-                dataType: 'json',
-                cache: false,
-                dataSrc: '',
-
-                success: function(data) {
-                    var detail_id = data.map(function(item) {
-                        return item.detail_id;
-                    });
-                    var price = data.map(function(item) {
-                        return item.price;
-                    });
-                    var hour = data.map(function(item) {
-                        return item.hour;
-                    });
-                    var available = data.map(function(item) {
-                        return item.available;
-                    });
-
+            $('#c_venue').on('select2:select', function(e) {
+                let venue = $('#c_venue').val();
+                if (venue) {
+                    $('#c_field').val(0).change();
                     $(".selectgroup-item").remove();
-                    for (i = 0; i < data.length; i++) {
-                        if (available[i] == 2) {
-                            var div = `<label class="selectgroup-item">
-                                            <input type="checkbox" name="detail_id[]" value="` + detail_id[i] + `" class="selectgroup-input"
-                                                disabled>
-                                            <span class="selectgroup-button" style="background-color:red; color:white">
-                                                <b>` + hour[i] + `</b><br>
-                                                <b>` + price[i] / 1000 + `K</b>
-                                            </span>
-                                        </label>`;
-                        } else {
-                            var div = `<label class="selectgroup-item">
-                                            <input type="checkbox" name="detail_id[]" value="` + detail_id[i] + `" class="selectgroup-input"
-                                                >
-                                            <span class="selectgroup-button">
-                                                <b>` + hour[i] + `</b><br>
-                                                <b>` + price[i] / 1000 + `K</b>
-                                            </span>
-                                        </label>`;
-                        }
-
-                        $("#hour-checkbox").append(div);
-                    }
-
-                    console.log(data)
+                    fethDataField(venue);
+                    $('#c_field').prop("disabled", false);
+                } else {
+                    $('#c_field').prop("disabled", true);
                 }
-
             });
-        });
 
-        function confirm(id) {
-            swal({
+            function fethDataField(venue) {
+                let base_url = "{{ URL('api/select/field') }}";
+                $("#c_field").select2({
+                    allowClear: true,
+                    language: {
+                        noResults: function() {
+                            return "Tidak ada tipe room yang sesuai pada kos ini";
+                        }
+                    },
+                    tokenSeparators: [',', ' '],
+                    ajax: {
+                        url: base_url + "/" + venue,
+                        dataType: "json",
+                        type: "GET",
+                        quietMillis: 50,
+                        data: function(params) {
+                            return {
+                                term: params.term
+                            }
+                        },
+                        processResults: function(data) {
+                            return {
+                                results: $.map(data, function(item) {
+                                    return {
+                                        text: item.name,
+                                        id: item.id
+                                    }
+                                })
+                            };
+                        }
+                    }
+                });
+            }
+
+            // === CREATE: render schedule + harga pakai membership (jika ada) ===
+            $('#c_field').on('select2:select', function(e) {
+                var venue_id = $('#c_venue').val();
+                var field_id = $('#c_field').val();
+                var date = $('#c_date').val();
+                $.ajax({
+                    url: "{{ url('api/select/schedule') }}?venue_id=" + venue_id + "&field_id=" +
+                        field_id + "&date=" + date,
+                    dataType: 'json',
+                    cache: false,
+                    dataSrc: '',
+                    success: function(data) {
+                        var detail_id = data.map(function(item) {
+                            return item.detail_id;
+                        });
+                        var price = data.map(function(item) {
+                            return item.price;
+                        });
+                        var hour = data.map(function(item) {
+                            return item.hour;
+                        });
+                        var available = data.map(function(item) {
+                            return item.available;
+                        });
+
+                        $(".selectgroup-item").remove();
+                        for (let i = 0; i < data.length; i++) {
+                            const shownPrice = applyMembershipDiscount(price[
+                                i]); // <<<< pakai diskon
+                            let div = '';
+                            if (available[i] == 2) {
+                                div = `<label class="selectgroup-item">
+                                            <input type="checkbox" name="detail_id[]" value="${detail_id[i]}" class="selectgroup-input" disabled>
+                                            <span class="selectgroup-button" style="background-color:red; color:white">
+                                                <b>${hour[i]}</b><br>
+                                                <b>${formatK(shownPrice)}</b>
+                                            </span>
+                                       </label>`;
+                            } else {
+                                div = `<label class="selectgroup-item">
+                                            <input type="checkbox" name="detail_id[]" value="${detail_id[i]}" class="selectgroup-input">
+                                            <span class="selectgroup-button">
+                                                <b>${hour[i]}</b><br>
+                                                <b>${formatK(shownPrice)}</b>
+                                            </span>
+                                       </label>`;
+                            }
+                            $("#hour-checkbox").append(div);
+                        }
+                    }
+                });
+            });
+
+            // === EDIT: render schedule + harga pakai membership (jika ada) ===
+            window.Editschedule = function Editschedule(id) {
+                var venue_id = $('#e_venue').val();
+                var field_id = $('#e_field').val();
+                var date = $('#e_date').val();
+                $.ajax({
+                    url: "{{ url('api/select/editSchedule') }}?venue_id=" + venue_id + "&field_id=" +
+                        field_id + "&date=" + date + "&rent_id=" + id,
+                    dataType: 'json',
+                    cache: false,
+                    dataSrc: '',
+                    success: function(data) {
+                        var detail_id = data.map(function(item) {
+                            return item.detail_id;
+                        });
+                        var price = data.map(function(item) {
+                            return item.price;
+                        });
+                        var hour = data.map(function(item) {
+                            return item.hour;
+                        });
+                        var available = data.map(function(item) {
+                            return item.available;
+                        });
+
+                        $(".selectgroup-item").remove();
+                        for (let i = 0; i < data.length; i++) {
+                            const shownPrice = applyMembershipDiscount(price[
+                                i]); // <<<< pakai diskon
+                            let div = '';
+                            if (available[i] == 4) {
+                                div = `<label class="selectgroup-item">
+                                            <input type="checkbox" name="detail_id[]" value="${detail_id[i]}" class="selectgroup-input" checked>
+                                            <span class="selectgroup-button">
+                                                <b>${hour[i]}</b><br>
+                                                <b>${formatK(shownPrice)}</b>
+                                            </span>
+                                       </label>`;
+                            } else if (available[i] == 2) {
+                                div = `<label class="selectgroup-item">
+                                            <input type="checkbox" name="detail_id[]" value="${detail_id[i]}" class="selectgroup-input" disabled>
+                                            <span class="selectgroup-button" style="background-color:red; color:white">
+                                                <b>${hour[i]}</b><br>
+                                                <b>${formatK(shownPrice)}</b>
+                                            </span>
+                                       </label>`;
+                            } else {
+                                div = `<label class="selectgroup-item">
+                                            <input type="checkbox" name="detail_id[]" value="${detail_id[i]}" class="selectgroup-input">
+                                            <span class="selectgroup-button">
+                                                <b>${hour[i]}</b><br>
+                                                <b>${formatK(shownPrice)}</b>
+                                            </span>
+                                       </label>`;
+                            }
+                            $("#hour-checkbox-edit").append(div);
+                        }
+                    }
+                });
+            };
+
+            // ====== fungsi lain (confirm, delete, reject, extend, edit) tetap ====
+            window.edit = function(id) {
+                $.ajax({
+                    url: "{{ url('api/booking/apiEdit') }}?id=" + id,
+                    dataType: 'json',
+                    cache: false,
+                    dataSrc: '',
+                    success: function(data) {
+                        $('#e_tenant_name').val(data.tenant_name);
+                        $('#e_venue').val(data.venue).change();
+                        $('#e_field').val(data.field).change();
+                        $('#e_date').val(data.date);
+                        Editschedule(id);
+                        $('#edit-booking').attr('action', "/owner/booking/" + id);
+                    }
+                });
+            };
+
+            window.extend = function(data) {
+                $.ajax({
+                    url: "{{ url('api/booking/extend') }}?id=" + data,
+                    dataType: 'json',
+                    cache: false,
+                    dataSrc: '',
+                    success: function(data) {
+                        $('#m_tenant_name').text(data.tenant_name);
+                        $('#m_venue').text(data.venue);
+                        $('#m_field').text(data.field);
+                        $('#m_date').text(data.date);
+                    }
+                });
+            };
+
+            window.confirm = function(id) {
+                swal({
                     title: "Apakah permintaan booking ini diterima?",
                     text: "Booking yang diterima akan tercatat dalam transaksi",
                     type: "warning",
@@ -486,10 +449,7 @@
                     cancelButtonText: "Tidak, batalkan!",
                     closeOnConfirm: false,
                     closeOnCancel: false
-
-
-                },
-                function(isConfirm) {
+                }, function(isConfirm) {
                     if (isConfirm) {
                         swal("Konfirmasi!", "Booking Diterima", "success");
                         $('#confirm').attr('action', "/owner/booking/" + id + "/confirm");
@@ -498,10 +458,10 @@
                         swal("Batal", "Kamu batal melakukan penerimaan booking", "error");
                     }
                 });
-        }
+            };
 
-        function confirm_delete(id) {
-            swal({
+            window.confirm_delete = function(id) {
+                swal({
                     title: "Apakah kamu yakin?",
                     text: "Data ini akan terhapus total",
                     type: "warning",
@@ -511,47 +471,22 @@
                     cancelButtonText: "Tidak, batalkan!",
                     closeOnConfirm: false,
                     closeOnCancel: false
-
-
-                },
-                function(isConfirm) {
+                }, function(isConfirm) {
                     if (isConfirm) {
                         swal("Data Terhapus!", "Data tersebut telah terhapus", "success");
-                        $('#deleted_booking').attr('action', "{{ route('owner.booking.index') }}/" + id);
+                        $('#deleted_booking').attr('action', "{{ route('owner.booking.index') }}/" +
+                            id);
                         $('#deleted_booking').submit();
                     } else {
                         swal("Batal", "Anda batal menghapus data", "error");
                     }
                 });
-        }
+            };
 
-        function reject1(id) {
-            swal({
-                    title: "Apakah permintaan booking ini ditolak?",
-                    text: "Booking yang ditolak tidak dapat diproses kembali",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "Ya, Tolak!",
-                    cancelButtonText: "Tidak, batalkan!",
-                    closeOnConfirm: false,
-                    closeOnCancel: false
-                },
-                function(isConfirm) {
-                    if (isConfirm) {
-                        swal("Ditolak!", "Booking ini ditolak",
-                            "success");
-                        $('#reject').attr('action', "/owner/booking/" + id + "/reject");
-                        $('#reject').submit();
-                    } else {
-                        swal("Batal", "Kamu batal melakukan penolakan booking", "error");
-                    }
-                });
-        }
-
-        function reject(id) {
-            $('#reject-booking').toggle();
-            $('#rent_id').val(id);
-        }
+            window.reject = function(id) {
+                $('#reject-booking').toggle();
+                $('#rent_id').val(id);
+            };
+        });
     </script>
 @endsection

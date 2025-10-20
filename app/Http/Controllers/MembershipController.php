@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MembershipController extends Controller
 {
@@ -75,18 +76,25 @@ class MembershipController extends Controller
 
                 $membership->save();
             } else {
-                // Buat membership baru (menunggu konfirmasi)
                 $start = $today->copy();
                 $end   = $today->copy()->addMonthsNoOverflow($months);
 
+                $shortVenueName = strtoupper(substr(preg_replace('/\s+/', '', $venue->name), 0, 3));
+
+                do {
+                    $rand3 = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+                    $customId = $shortVenueName . '-' . now()->format('Ymd') . '-' . $rand3;
+                } while (Membership::where('id', $customId)->exists());
+
                 $membership = Membership::create([
-                    'user_id'            => $userId,
-                    'venue_id'           => $venue->id,
-                    'start_date'         => $start->toDateString(),
-                    'end_date'           => $end->toDateString(),
-                    'payment'            => $fileName,
-                    'membership_status'  => 2, // WAITING_CONFIRMATION
-                    'count_month'        => $months,
+                    'id'                => $customId,
+                    'user_id'           => $userId,
+                    'venue_id'          => $venue->id,
+                    'start_date'        => $start->toDateString(),
+                    'end_date'          => $end->toDateString(),
+                    'payment'           => $fileName,
+                    'membership_status' => 2,
+                    'count_month'       => $months,
                 ]);
             }
 
@@ -173,4 +181,52 @@ class MembershipController extends Controller
             return back()->withErrors('Gagal menolak membership.');
         }
     }
+
+    public function checkMembership(Request $request)
+    {
+        $validated = $request->validate([
+            'venue_id' => 'required|exists:venues,id',
+            'id'       => 'required|string|max:50',
+        ]);
+
+        $venueId = (int) $validated['venue_id'];
+        $id      = strtoupper(trim($validated['id']));
+
+        // (Opsional) Batasi venue milik owner yang login:
+        // $ownerVenueIds = Auth::user()->venues()->pluck('id')->toArray();
+        // if (!in_array($venueId, $ownerVenueIds)) {
+        //     return back()->withErrors(['venue_id' => 'Venue tidak valid untuk akun Anda.'])->withInput();
+        // }
+
+        $membership = Membership::where('id', $id)->where('venue_id', $venueId)->where('membership_status', 1)->first();
+
+        if (!$membership) {
+            return back()
+                ->withErrors(['id' => 'Membership tidak ditemukan atau tidak aktif pada venue terpilih.'])
+                ->withInput();
+        }
+
+        session()->put('booking.membership', [
+            'id'         => (string) $membership->id,
+            'user_id'    => (int) $membership->user_id,
+            'user_name'  => (string) ($membership->user->first_name . ' ' . $membership->user->last_name ?? ''),
+            'venue_id'   => (int) $membership->venue_id,
+            'venue_name' => (string) ($membership->venue->name ?? ''),
+            'status'     => (int) $membership->membership_status,
+            'start_date' => (string) ($membership->start_date ?? ''),
+            'end_date'   => (string) ($membership->end_date ?? ''),
+            'membership_discount' => (int) $membership->venue->membership_discount
+        ]);
+
+        return back()->with('success_message', 'Membership ditemukan: ' . $membership->id);
+    }
+
+    public function cancelMembership()
+    {
+        // Hapus session membership
+        session()->forget('booking.membership');
+
+        return back()->with('info_message', 'Membership telah dibatalkan.');
+    }
+
 }

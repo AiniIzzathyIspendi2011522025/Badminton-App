@@ -40,6 +40,7 @@
                                 <table id="example1" class="table table-bordered table-striped dataTables-booking">
                                     <thead>
                                         <tr>
+                                            <th>ID</th>
                                             <th>Nama</th>
                                             <th>Venue</th>
                                             <th>Mulai</th>
@@ -51,6 +52,7 @@
                                     <tbody>
                                         @foreach ($memberships as $membership)
                                             <tr>
+                                                <td>{{ $membership['membership_id'] }}</td>
                                                 <td>{{ $membership['nama_member'] }}</td>
                                                 <td>{{ $membership['nama_venue'] }}</td>
                                                 <td>{{ $membership['start_date'] }}</td>

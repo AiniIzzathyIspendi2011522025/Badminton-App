@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Membership extends Model
 {
     protected $table = "memberships";
-    protected $guarded = ["id"];
+    protected $guarded = [];
     use HasFactory;
+
+    public $incrementing = false;   // <— WAJIB
+    protected $keyType = 'string';  // <— WAJIB
 
     public function user()
     {
